@@ -2,7 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#4f6df5">
+<meta name="format-detection" content="telephone=no">
 <title>数据安全刷题系统</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -602,14 +606,138 @@ body {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ========== Responsive ========== */
+
+/* ---- Tablet & small desktop (<= 768px) ---- */
+@media (max-width: 768px) {
+  .container { padding: 16px 12px; }
+  .question-card { padding: 24px 20px; }
+  .q-text { font-size: 16px; }
+}
+
+/* ---- Mobile (<= 600px) ---- */
 @media (max-width: 600px) {
-  .topbar h1 { font-size: 16px; }
-  .topbar .nav-btn { padding: 6px 10px; font-size: 13px; }
-  .question-card { padding: 20px 16px; }
-  .q-text { font-size: 15px; }
-  .option { padding: 12px; }
-  .stat-card { min-width: 80px; padding: 10px; }
+  /* Top bar */
+  .topbar { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+  .topbar h1 { font-size: 15px; gap: 6px; }
+  .topbar .logo { font-size: 22px; }
+  .topbar .nav-btns { gap: 6px; }
+  .nav-btn { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+  /* Container */
+  .container { padding: 14px 10px; padding-bottom: 80px; }
+
+  /* Stats bar */
+  .stats-bar { gap: 8px; }
+  .stat-card { min-width: calc(50% - 4px); padding: 10px 8px; }
   .stat-card .num { font-size: 20px; }
+  .stat-card .label { font-size: 11px; }
+
+  /* Progress bar */
+  .progress-info { font-size: 12px; }
+
+  /* Mode tabs - allow wrap for 6 tabs */
+  .mode-tabs { flex-wrap: wrap; gap: 4px; padding: 5px; }
+  .mode-tab { flex: 1 1 calc(33.333% - 4px); padding: 8px 4px; font-size: 12px; min-width: 0; }
+
+  /* Question card */
+  .question-card { padding: 18px 14px; border-radius: 10px; }
+  .q-meta { flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .q-badge { font-size: 11px; padding: 2px 8px; }
+  .q-num { font-size: 12px; }
+  .q-text { font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+  .fav-btn { font-size: 18px; }
+
+  /* Options */
+  .options { gap: 10px; }
+  .option { padding: 12px 12px; gap: 10px; }
+  .option-letter { width: 26px; height: 26px; min-width: 26px; font-size: 13px; }
+  .option-text { font-size: 14px; line-height: 1.5; }
+
+  /* Feedback */
+  .feedback { padding: 14px; font-size: 14px; }
+  .feedback .fb-title { font-size: 15px; }
+  .feedback .fb-answer { font-size: 13px; }
+
+  /* Action bar */
+  .action-bar { gap: 8px; }
+  .btn { padding: 11px; font-size: 14px; }
+
+  /* Settings */
+  .settings-panel { padding: 18px 14px; }
+  .settings-group h3 { font-size: 15px; }
+  .settings-row { font-size: 13px; padding: 9px 0; flex-wrap: wrap; gap: 8px; }
+  .settings-row button { padding: 5px 14px; font-size: 12px; }
+
+  /* Wrong & Favorite items */
+  .wrong-item, .fav-item { padding: 16px 14px; }
+  .wrong-item .wi-question, .fav-item .fi-question { font-size: 14px; }
+  .wrong-item .wi-answers, .fav-item .fi-answer { font-size: 13px; }
+
+  /* Answer sheet */
+  .sheet-panel { max-height: 70vh; border-radius: 14px 14px 0 0; }
+  .sheet-header { padding: 6px 16px 10px; }
+  .sheet-header h3 { font-size: 15px; }
+  .sheet-legend { gap: 10px; padding: 8px 16px; font-size: 11px; }
+  .legend-dot { width: 14px; height: 14px; }
+  .sheet-body { padding: 6px 14px 16px; }
+  .sheet-grid { grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 6px; }
+  .sheet-cell { height: 38px; font-size: 13px; border-radius: 6px; }
+  .sheet-cell.fav::after { font-size: 8px; }
+
+  /* Floating button */
+  .bottom-sheet-btn { width: 50px; height: 50px; font-size: 22px; bottom: 14px; right: 14px; }
+}
+
+/* ---- Small mobile (<= 400px) ---- */
+@media (max-width: 400px) {
+  /* Top bar - compact */
+  .topbar { padding: 10px 10px; }
+  .topbar h1 { font-size: 13px; }
+  .topbar .logo { font-size: 18px; }
+  .nav-btn { padding: 4px 8px; font-size: 11px; }
+
+  /* Container */
+  .container { padding: 12px 8px; padding-bottom: 76px; }
+
+  /* Stats - 2 per row */
+  .stats-bar { gap: 6px; }
+  .stat-card { padding: 8px 6px; }
+  .stat-card .num { font-size: 18px; }
+  .stat-card .label { font-size: 10px; }
+
+  /* Mode tabs - 2 per row on very small screens */
+  .mode-tab { flex: 1 1 calc(50% - 3px); font-size: 11px; padding: 7px 3px; }
+
+  /* Question */
+  .question-card { padding: 16px 12px; }
+  .q-text { font-size: 14px; line-height: 1.6; }
+  .option { padding: 10px; gap: 8px; }
+  .option-letter { width: 24px; height: 24px; min-width: 24px; font-size: 12px; }
+  .option-text { font-size: 13px; line-height: 1.4; }
+
+  /* Action bar */
+  .btn { padding: 10px; font-size: 13px; }
+
+  /* Sheet grid - smaller cells */
+  .sheet-grid { grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 5px; }
+  .sheet-cell { height: 34px; font-size: 12px; }
+
+  /* Floating button */
+  .bottom-sheet-btn { width: 46px; height: 46px; font-size: 20px; bottom: 12px; right: 12px; }
+}
+
+/* ---- Landscape phone optimization ---- */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  .topbar { padding: 8px 16px; }
+  .stats-bar { margin-bottom: 12px; }
+  .stat-card { padding: 8px 6px; }
+  .stat-card .num { font-size: 18px; }
+}
+
+/* ---- Safe area for notched phones ---- */
+@supports (padding: max(0px)) {
+  .topbar { padding-top: max(12px, env(safe-area-inset-top)); }
+  .bottom-sheet-btn { bottom: max(14px, env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
