@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据安全刷题系统</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #4f6df5;
+  --primary-light: #6d83f7;
+  --primary-dark: #3a55e0;
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #6b7280;
+  --success: #22c55e;
+  --success-bg: #ecfdf5;
+  --error: #ef4444;
+  --error-bg: #fef2f2;
+  --warning: #f59e0b;
+  --warning-bg: #fffbeb;
+  --border: #e5e7eb;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --radius: 12px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* ========== Top Bar ========== */
+.topbar {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(79,109,245,0.3);
+}
+.topbar h1 {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar .logo {
+  font-size: 28px;
+}
+.topbar .nav-btns {
+  display: flex;
+  gap: 8px;
+}
+.nav-btn {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all .2s;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.3); }
+.nav-btn.active { background: #fff; color: var(--primary); border-color: #fff; }
+
+/* ========== Main Container ========== */
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+/* ========== Stats Bar ========== */
+.stats-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.stat-card .num { font-size: 24px; font-weight: 700; }
+.stat-card .label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.stat-card .num.green { color: var(--success); }
+.stat-card .num.red { color: var(--error); }
+.stat-card .num.blue { color: var(--primary); }
+.stat-card .num.orange { color: var(--warning); }
+
+/* ========== Mode Tabs ========== */
+.mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 6px;
+  box-shadow: var(--shadow);
+}
+.mode-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all .2s;
+}
+.mode-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ========== Question Card ========== */
+.question-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.q-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.q-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.q-badge.single { background: #dbeafe; color: #2563eb; }
+.q-badge.multi { background: #fef3c7; color: #d97706; }
+.q-badge.judge { background: #e0e7ff; color: #6366f1; }
+.q-num { font-size: 13px; color: var(--text-secondary); }
+.q-text {
+  font-size: 17px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+/* ========== Options ========== */
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .2s;
+  user-select: none;
+}
+.option:hover { border-color: var(--primary-light); background: #f5f7ff; }
+.option.selected { border-color: var(--primary); background: #eef1ff; }
+.option.correct {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+.option.wrong {
+  border-color: var(--error);
+  background: var(--error-bg);
+}
+.option.disabled { cursor: default; }
+.option-letter {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  background: #f3f4f6;
+  color: var(--text-secondary);
+  transition: all .2s;
+}
+.option.selected .option-letter {
+  background: var(--primary);
+  color: #fff;
+}
+.option.correct .option-letter {
+  background: var(--success);
+  color: #fff;
+}
+.option.wrong .option-letter {
+  background: var(--error);
+  color: #fff;
+}
+.option-text { flex: 1; font-size: 15px; line-height: 1.6; padding-top: 4px; }
+
+/* ========== Answer Feedback ========== */
+.feedback {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.7;
+  display: none;
+}
+.feedback.show { display: block; animation: fadeIn .3s ease; }
+.feedback.correct {
+  background: var(--success-bg);
+  border-left: 4px solid var(--success);
+  color: #166534;
+}
+.feedback.wrong {
+  background: var(--error-bg);
+  border-left: 4px solid var(--error);
+  color: #991b1b;
+}
+.feedback .fb-title { font-weight: 700; font-size: 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.feedback .fb-answer { font-size: 14px; }
+
+/* ========== Action Buttons ========== */
+.action-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+.btn-outline { background: var(--card); color: var(--text); border: 2px solid var(--border); }
+.btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.btn-danger { background: #fff; color: var(--error); border: 2px solid var(--error); }
+.btn-danger:hover:not(:disabled) { background: var(--error-bg); }
+
+/* ========== Progress Bar ========== */
+.progress-wrap {
+  margin-bottom: 20px;
+}
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 4px;
+  transition: width .3s ease;
+}
+
+/* ========== Wrong Question List ========== */
+.wrong-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wrong-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--error);
+}
+.wrong-item .wi-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.wrong-item .wi-question {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.wrong-item .wi-answers {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.wrong-item .wi-answers .your-ans { color: var(--error); font-weight: 600; }
+.wrong-item .wi-answers .correct-ans { color: var(--success); font-weight: 600; }
+.wrong-item .wi-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+.wrong-item .wi-actions button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.wrong-item .wi-actions button:hover { border-color: var(--primary); color: var(--primary); }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.empty-state .icon { font-size: 56px; margin-bottom: 12px; }
+.empty-state .title { font-size: 18px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.empty-state .desc { font-size: 14px; }
+
+/* ========== Settings Panel ========== */
+.settings-panel {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.settings-group { margin-bottom: 20px; }
+.settings-group h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row button {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  cursor: pointer;
+}
+.settings-row button:hover { border-color: var(--primary); color: var(--primary); }
+.settings-row button.danger { border-color: var(--error); color: var(--error); }
+.settings-row button.danger:hover { background: var(--error-bg); }
+
+.filter-checkboxs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.filter-checkboxs label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ========== Favorite Star Button ========== */
+.fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #d1d5db;
+  transition: all .2s;
+  padding: 0 2px;
+  line-height: 1;
+}
+.fav-btn:hover { transform: scale(1.2); }
+.fav-btn.active { color: #f59e0b; }
+
+/* Favorite cell mark in answer sheet */
+.sheet-cell.fav {
+  position: relative;
+}
+.sheet-cell.fav::after {
+  content: '★';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 9px;
+  color: #f59e0b;
+}
+
+/* Favorite list item */
+.fav-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid #f59e0b;
+}
+.fav-item .fi-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.fav-item .fi-question {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.fav-item .fi-answer {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.fav-item .fi-answer .correct-ans { color: var(--success); font-weight: 600; }
+.fav-item .fi-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+.fav-item .fi-actions button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.fav-item .fi-actions button:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ========== Answer Card Sheet (粉笔风格答题卡) ========== */
+.sheet-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  display: none;
+  animation: fadeIn .2s ease;
+}
+.sheet-overlay.show { display: block; }
+
+.sheet-panel {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  z-index: 201;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(0.4,0,0.2,1);
+}
+.sheet-panel.show { transform: translateY(0); }
+
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin: 10px auto 6px;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.sheet-header h3 { font-size: 16px; font-weight: 700; }
+.sheet-close {
+  background: none; border: none;
+  font-size: 22px; color: var(--text-secondary);
+  cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.sheet-close:hover { color: var(--text); }
+
+.sheet-legend {
+  display: flex;
+  gap: 16px;
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.legend-dot {
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.legend-dot.unanswered { background: #f3f4f6; border: 1px solid #e5e7eb; }
+.legend-dot.correct { background: #bbf7d0; border: 1px solid #22c55e; }
+.legend-dot.wrong { background: #fecaca; border: 1px solid #ef4444; }
+.legend-dot.current { background: var(--primary); }
+
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 20px 20px;
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 8px;
+}
+
+.sheet-cell {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: var(--text-secondary);
+  user-select: none;
+}
+.sheet-cell:hover { transform: scale(1.1); z-index: 1; }
+.sheet-cell.correct {
+  background: #bbf7d0;
+  border-color: #22c55e;
+  color: #166534;
+}
+.sheet-cell.wrong {
+  background: #fecaca;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+.sheet-cell.current {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(79,109,245,0.25);
+}
+
+.sheet-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+.sheet-footer .btn { flex: 1; }
+
+/* Bottom bar with sheet button */
+.bottom-sheet-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 20px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  box-shadow: 0 4px 16px rgba(79,109,245,0.4);
+  cursor: pointer;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+}
+.bottom-sheet-btn:hover { transform: scale(1.08); background: var(--primary-dark); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ========== Responsive ========== */
+@media (max-width: 600px) {
+  .topbar h1 { font-size: 16px; }
+  .topbar .nav-btn { padding: 6px 10px; font-size: 13px; }
+  .question-card { padding: 20px 16px; }
+  .q-text { font-size: 15px; }
+  .option { padding: 12px; }
+  .stat-card { min-width: 80px; padding: 10px; }
+  .stat-card .num { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><span class="logo">🛡️</span> 数据安全刷题系统</h1>
+  <div class="nav-btns">
+    <button class="nav-btn active" onclick="switchView('practice')">刷题</button>
+    <button class="nav-btn" onclick="switchView('wrong')">错题库</button>
+    <button class="nav-btn" onclick="switchView('fav')">收藏</button>
+    <button class="nav-btn" onclick="switchView('settings')">设置</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== Practice View ===== -->
+  <div id="view-practice">
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="num blue" id="stat-answered">0</div>
+        <div class="label">已答题数</div>
+      </div>
+      <div class="stat-card">
+        <div class="num green" id="stat-correct">0</div>
+        <div class="label">答对</div>
+      </div>
+      <div class="stat-card">
+        <div class="num red" id="stat-wrong">0</div>
+        <div class="label">答错</div>
+      </div>
+      <div class="stat-card">
+        <div class="num orange" id="stat-rate">--</div>
+        <div class="label">正确率</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-text">第 1 题</span>
+        <span id="progress-total">/ 0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="mode-tabs">
+      <div class="mode-tab active" data-mode="all" onclick="setMode('all')">全部题目</div>
+      <div class="mode-tab" data-mode="single" onclick="setMode('single')">单选题</div>
+      <div class="mode-tab" data-mode="multi" onclick="setMode('multi')">多选题</div>
+      <div class="mode-tab" data-mode="judge" onclick="setMode('judge')">判断题</div>
+      <div class="mode-tab" data-mode="wrong" onclick="setMode('wrong')">仅错题</div>
+      <div class="mode-tab" data-mode="fav" onclick="setMode('fav')">仅收藏</div>
+    </div>
+
+    <div id="question-area"></div>
+
+    <div class="action-bar">
+      <button class="btn btn-outline" id="btn-prev" onclick="prevQuestion()">上一题</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">下一题</button>
+    </div>
+  </div>
+
+  <!-- ===== Answer Sheet (粉笔风格答题卡) ===== -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+  <div class="sheet-panel" id="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h3>答题卡</h3>
+      <button class="sheet-close" onclick="closeSheet()">×</button>
+    </div>
+    <div class="sheet-legend">
+      <span class="legend-item"><span class="legend-dot current"></span>当前</span>
+      <span class="legend-item"><span class="legend-dot correct"></span>已答对</span>
+      <span class="legend-item"><span class="legend-dot wrong"></span>已答错</span>
+      <span class="legend-item"><span class="legend-dot unanswered"></span>未作答</span>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-grid" id="sheet-grid"></div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn btn-outline" onclick="closeSheet()">关闭</button>
+    </div>
+  </div>
+
+  <button class="bottom-sheet-btn" id="sheet-btn" onclick="openSheet()" title="答题卡">📋</button>
+
+  <!-- ===== Wrong Questions View ===== -->
+  <div id="view-wrong" style="display:none">
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="num red" id="wrong-count">0</div>
+        <div class="label">错题总数</div>
+      </div>
+    </div>
+    <div class="action-bar" style="margin-bottom:16px">
+      <button class="btn btn-primary" onclick="switchView('practice'); setMode('wrong')">开始错题重练</button>
+      <button class="btn btn-danger" onclick="clearAllWrong()">清空错题库</button>
+    </div>
+    <div id="wrong-list-area" class="wrong-list"></div>
+  </div>
+
+  <!-- ===== Favorite Questions View ===== -->
+  <div id="view-fav" style="display:none">
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="num" style="color:#f59e0b" id="fav-count">0</div>
+        <div class="label">收藏总数</div>
+      </div>
+    </div>
+    <div class="action-bar" style="margin-bottom:16px">
+      <button class="btn btn-primary" onclick="switchView('practice'); setMode('fav')">开始收藏重练</button>
+      <button class="btn btn-outline" style="border-color:#f59e0b;color:#f59e0b" onclick="clearAllFav()">清空收藏</button>
+    </div>
+    <div id="fav-list-area" class="wrong-list"></div>
+  </div>
+
+  <!-- ===== Settings View ===== -->
+  <div id="view-settings" style="display:none">
+    <div class="settings-panel">
+      <div class="settings-group">
+        <h3>📊 统计信息</h3>
+        <div class="settings-row"><span>题目总数</span><span id="set-total">299</span></div>
+        <div class="settings-row"><span>已答题数</span><span id="set-answered">0</span></div>
+        <div class="settings-row"><span>答对题数</span><span id="set-correct">0</span></div>
+        <div class="settings-row"><span>答错题数</span><span id="set-wrong">0</span></div>
+        <div class="settings-row"><span>整体正确率</span><span id="set-rate">--</span></div>
+      </div>
+      <div class="settings-group">
+        <h3>⚙️ 答题设置</h3>
+        <div class="settings-row">
+          <span>随机出题</span>
+          <button id="toggle-random" onclick="toggleRandom()">关闭</button>
+        </div>
+        <div class="settings-row">
+          <span>答错自动加入错题库</span>
+          <button id="toggle-auto-wrong" onclick="toggleAutoWrong()">开启</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>📦 数据迁移</h3>
+        <div class="settings-row">
+          <span>导出刷题记录到文件</span>
+          <button onclick="exportData()">导出</button>
+        </div>
+        <div class="settings-row">
+          <span>从文件导入刷题记录</span>
+          <button onclick="document.getElementById('import-file').click()">导入</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+        <div class="settings-row" style="border-bottom:none;font-size:12px;color:var(--text-secondary);padding-top:8px">
+          <span>导出含答题记录、错题库、收藏、设置，可在其他电脑导入恢复</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>🗑️ 数据管理</h3>
+        <div class="settings-row">
+          <span>清空答题记录</span>
+          <button onclick="clearProgress()">清空</button>
+        </div>
+        <div class="settings-row">
+          <span>清空错题库</span>
+          <button class="danger" onclick="clearAllWrong()">清空</button>
+        </div>
+        <div class="settings-row">
+          <span>清空收藏</span>
+          <button class="danger" onclick="clearAllFav()">清空</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ DATA ============
+const ALL_QUESTIONS = [{"id": 1, "type": "single", "question": "《中华人民共和国数据安全法》施行时间是？", "options": {"A": "2021年9月1日", "B": "2021年6月10日", "C": "2021年1月1日", "D": "2017年1月1日"}, "answer": "A"}, {"id": 2, "type": "single", "question": "下列数据中不属于国家核心数据的是？", "options": {"A": "关系国家安全的数据", "B": "关系国民经济命脉的数据", "C": "关系重要民生的数据", "D": "关系公共利益的数据"}, "answer": "D"}, {"id": 3, "type": "single", "question": "不属于数据基本特征的是？", "options": {"A": "二进制", "B": "完整性", "C": "语义性", "D": "分散性"}, "answer": "B"}, {"id": 4, "type": "single", "question": "常见安全问题中DBA人员是指什么？", "options": {"A": "数据库技术人员", "B": "数据库普通人员", "C": "数据库管理员", "D": "数据库架构师"}, "answer": "C"}, {"id": 5, "type": "single", "question": "不属于生物认证的是？", "options": {"A": "指纹", "B": "静脉", "C": "笔迹", "D": "token"}, "answer": "D"}, {"id": 6, "type": "single", "question": "以下哪条数据跨境传输途径不符合GDPR的规范？", "options": {"A": "欧盟内的国家可以互相直接传输数据，不需要进行特别授权", "B": "数据跨境传输时，相关国家达不到“充分保护”标准，可以采用对方国家制定的标准合同,将数据保护的相关条款纳入其中并严格遵守", "C": "进行数据跨境传输，相关国家达不到“充分”标准，企业可以在满足“约束性企业原则”的情况下，参与跨境数据传输", "D": "数据主体同意,出于订立和履行合同需要、司法需要以及保护重大利益需要时进行跨境数据传输"}, "answer": "A"}, {"id": 7, "type": "single", "question": "下面关于数据算法的说法正确的是（）。", "options": {"A": "《算法透明性和可问责性声明》中提出使用算法的机构应采取严格的方法验证算法模型并将测试结果公开，但不建议机构对算法所遵循的程序以及作出的特定决策进行解释。", "B": "《数据安全管理办法(征求意见稿)》,明确规定网络运营者在利用用户数据和算法推送商业广告等时，应以明显方式表明“定推’字样,但不需要为用户提供停止接受定向推送信息的功能.", "C": "《互联网信息服务算法推荐管理规定(征求意见稿)》,要求算法推荐服务提供者向用户提供不针对其个人特征的选项,或者向用户提供便捷的关闭算法推荐服务的选项。", "D": "《欧盟人工智能》提出:人工智能应坚持以人为本的价值观，人工智能技术需要朝着有益于个人和社会的方向发展.我国暂时还没有相关文件提出类似要求。"}, "answer": "C"}, {"id": 8, "type": "single", "question": "《红楼梦》含标点87万字（不含标点853509字）每个汉字占两个字节：1汉字=16bit = 2*8位=2bytes。1PB约等于多少部《红楼梦》", "options": {"A": "671", "B": "631,903", "C": "647,068,911", "D": "6,470,689,111"}, "answer": "C"}, {"id": 9, "type": "single", "question": "大数据系统安全运行能力不包括", "options": {"A": "安全防护", "B": "监测评估", "C": "应急响应", "D": "风险评估"}, "answer": "D"}, {"id": 10, "type": "single", "question": "不属于安全建设工程的是？", "options": {"A": "设计阶段", "B": "交付阶段", "C": "加固阶段", "D": "测试阶段"}, "answer": "B"}, {"id": 11, "type": "single", "question": "个人信息保护法的正式实施时间是？", "options": {"A": "2021年8月20日", "B": "2017年6月1日", "C": "2021年11月1日", "D": "2022年11月1日"}, "answer": "C"}, {"id": 12, "type": "single", "question": "个人隐私敏感数据不包括哪些？", "options": {"A": "爱好", "B": "心理", "C": "基因", "D": "姓名"}, "answer": "D"}, {"id": 13, "type": "single", "question": "网络隐私形势不包括的是？", "options": {"A": "Cookies 文件的滥用", "B": "黑客攻击行为", "C": "第三方泄露或共享", "D": "笔记"}, "answer": "D"}, {"id": 14, "type": "single", "question": "以下属于保密性模型的是（）？", "options": {"A": "Bell-Lapudula 模型", "B": "Biba 模型", "C": "Clark-Wilson 模型", "D": "Chinese Wall 模型"}, "answer": "A"}, {"id": 15, "type": "single", "question": "关于正则表达式(?<!\\d)(?:86-)?1[3456789]\\d{9}(?!\\d)，下列说法错误的是（）。", "options": {"A": "(?<!\\d)表示前面不能有数字", "B": "(?:86-)?表示必须有国际前缀86-", "C": "86-13822222211符合该正则表达式", "D": "(?!\\d)表示后面不能跟着一个数字"}, "answer": "B"}, {"id": 16, "type": "single", "question": "关于数据的处理思路，下列说法错误的是（）。", "options": {"A": "我们需要预先确定好数据的输出格式。", "B": "处理好的数据，我们可能需要检查，减少干扰项。", "C": "我们只要根据数据格式选择正确的正则表达式，就可以保证处理后数据的准确性。不需要考虑数据的正向以及负向。", "D": "我们可以使用自然语言处理技术处理预料结构，从而提高数据准确性。"}, "answer": "C"}, {"id": 17, "type": "single", "question": "在保留原始数据局部特征的前提下使用一般值替代原始数据的脱敏技术是（）", "options": {"A": "泛化技术", "B": "抑制技术", "C": "扰乱技术", "D": "有损技术"}, "answer": "A"}, {"id": 18, "type": "single", "question": "数据安全风险评估是指：", "options": {"A": "对数据安全进行全面评估和分析的过程", "B": "对数据网络设备进行性能测试的过程", "C": "对数据网络连接进行速度测试的过程", "D": "对数据网络用户进行身份验证的过程"}, "answer": "A"}, {"id": 19, "type": "single", "question": "数据安全风险评估的目的是：", "options": {"A": "提高网络连接的速度和稳定性", "B": "提高用户的满意度", "C": "识别和评估数据传输过程中的安全威胁和漏洞", "D": "提高设备的性能和鲁棒性"}, "answer": "C"}, {"id": 20, "type": "single", "question": "量化控制级属于能力几级", "options": {"A": "能力级别1", "B": "能力级别2", "C": "能力级别3", "D": "能力级别4"}, "answer": "D"}, {"id": 21, "type": "single", "question": "不包括备份数据量的是？", "options": {"A": "全量备份", "B": "新增备份", "C": "差量备份", "D": "定时备份"}, "answer": "D"}, {"id": 22, "type": "single", "question": "不属于灾备关键技术的是？", "options": {"A": "数据复制", "B": "数据销毁", "C": "灾难检测", "D": "系统迁移"}, "answer": "B"}, {"id": 23, "type": "single", "question": "CARTA模型四阶段错误的是（）？", "options": {"A": "1、预防", "B": "2、检测", "C": "3、预测", "D": "4、总结"}, "answer": "D"}, {"id": 24, "type": "single", "question": "为了保证数据传输安全，可以在数据流动之前利用密码学技术与信息隐藏技术对传输的数据进行处理，下列针对密码学技术与信息隐藏技术说法错误的是（ ）。", "options": {"A": "密码学技术就是利用密码学原理将明文通过密码算法，变换成密文。", "B": "加密的实质是将明文字符串转换成密文字符串，在通信过程中可能会被察觉，可能使得恶意攻击者追踪利用。", "C": "信息隐藏技术是将某些特殊信息隐藏于正常载体之中，掩盖了秘密数据传输的行为，不易引起攻击者的怀疑。", "D": "信息隐藏技术的特性之一不可检测性，是指使用的隐藏算法有较强的抗攻击能力。"}, "answer": "D"}, {"id": 25, "type": "single", "question": "攻击者在数据传输的过程中截取到了一张图片，他使用foremost工具分析图片并成功得到了一个压缩文件。请问这张图片所使用的数据隐写方法为（ ）。", "options": {"A": "追加类型隐写", "B": "LSB类型隐写", "C": "DCT变换频域隐写"}, "answer": "A"}, {"id": 26, "type": "single", "question": "FTP协议是常见的数据传输协议之一。使用wireshark分析FTP协议，下列有关操作错误的是?()", "options": {"A": "使用过滤器：ftp，可以过滤出所有的FTP协议数据包", "B": "使用\"追踪TCP流\"功能可以将FTP服务器与客户端之间的通信过程追踪出来", "C": "使用过滤器：tcp.port==20，可以过滤出FTP服务器与客户端之间传输的数据流内容", "D": "使用过滤器：tcp.port==21，可以过滤出FTP服务器与客户端之间传输的命令流内容"}, "answer": "C"}, {"id": 27, "type": "single", "question": "TCP传输控制协议是位于传输层的协议。下列关于TCP协议的说法错误的是（ ）。", "options": {"A": "所谓三次握手，是指建立一个TCP连接时，需要客户端和服务器总共发送3个包", "B": "TCP使用滑动窗口机制来实现流量控制，通过动态改变窗口的大小进行拥塞控制", "C": "TCP可以用于广播和多播", "D": "TCP的包是没有IP地址的，但是有源端口和目标端口"}, "answer": "C"}, {"id": 28, "type": "single", "question": "在数据传输过程中，可以使用wireshark进行抓取传输的数据。使用wireshark分析数据时，应用下列哪一条显示过滤器能过滤出所有源IP地址为192.168.1.1并且HTTP请求方法为POST的数据包?( )", "options": {"A": "ip.addr = 192.168.1.1 && http.request.method=POST", "B": "ip.src == 192.168.1.1 && http.request.method == POST", "C": "ip.src == 192.168.1.1 && http.response.method == post", "D": "ip.src == 192.168.1.1 || http.response.method == post"}, "answer": "B"}, {"id": 29, "type": "single", "question": "小明捕获了攻击者攻击的流量数据，在分析的过程中发现了很多TCP标记位RST=1的数据包，请问攻击性最有可能施行了（）攻击。", "options": {"A": "web目录扫描", "B": "系统密码爆破", "C": "文件上传", "D": "端口扫描"}, "answer": "D"}, {"id": 30, "type": "single", "question": "数据安全分级分类中共有几个级别", "options": {"A": "3", "B": "4", "C": "5", "D": "6"}, "answer": "A"}, {"id": 31, "type": "single", "question": "信息系统受到破坏后，会对社会秩序和公共利益造成严重损害，或者对国家安全造成损害属于什么级别？", "options": {"A": "3", "B": "4", "C": "5", "D": "2"}, "answer": "A"}, {"id": 32, "type": "single", "question": "在数据采集阶段，我们主要使用密码技术来保证数据来源的可靠。在通常情况下，我们主要使用（）技术，对数据源进行鉴别和认证，防止采集数据遭到篡改。", "options": {"A": "数字签名", "B": "数据传输", "C": "数据加密", "D": "D-H密钥交换"}, "answer": "A"}, {"id": 33, "type": "single", "question": "近年来，我国多措并举、多管齐下，陆续健全了与数据安全相关的法律体系。从技术手段来看，（）明确了将密码技术作为核心的安全技术路线，将针对重要信息系统形成强合规增量市场。", "options": {"A": "《个人信息保护法》", "B": "《数据安全法》", "C": "《密码法》", "D": "《刑法》"}, "answer": "C"}, {"id": 34, "type": "single", "question": "针对隐私保护和信任风险的问题，可以使用隐私计算，在提供隐私保护的前提下实现数据价值挖掘，做到（）。", "options": {"A": "“数据不可用不可见”", "B": "“数据不可用可见”", "C": "“数据可用不可见”", "D": "“数据可用可见”"}, "answer": "C"}, {"id": 35, "type": "single", "question": "以下哪个不是对称加密算法？", "options": {"A": "DES", "B": "AES", "C": "IDEA", "D": "RSA"}, "answer": "D"}, {"id": 36, "type": "single", "question": "下列说法中关于对称加密体制缺点的描述，说法错误的是？", "options": {"A": "多人通信时密钥组合的数量会出现爆炸性膨胀，使密钥分发更加复杂化。", "B": "通信双方必须统一密钥，才能发送保密消息。如果发信方与收信方素不相识，这就无法向对方发送秘密消息了。", "C": "加密、解密处理速度较慢。", "D": "除了密钥管理与分发问题，对称算法还存在数字签名困难的问题。"}, "answer": "C"}, {"id": 37, "type": "single", "question": "若Alice想向Bob发送邮件传递信息，并且想要向Bob证明该邮件由Alice发送，即Alice进行签名，那么Alice需要使用（）对邮件进行加密。", "options": {"A": "Alice公钥", "B": "Bob公钥", "C": "Bob私钥", "D": "Alice私钥"}, "answer": "D"}, {"id": 38, "type": "single", "question": "不属于数据数据库模型的是？", "options": {"A": "树形结构模型", "B": "网状结构模型", "C": "关系结构模型", "D": "层次结构模型"}, "answer": "A"}, {"id": 39, "type": "single", "question": "不属于数据安全要求的是？", "options": {"A": "机密性", "B": "不可抵赖性", "C": "访问控制", "D": "可用性"}, "answer": "B"}, {"id": 40, "type": "single", "question": "数据库到应用服务器之间的是？", "options": {"A": "互联网", "B": "防火墙", "C": "客户端", "D": "中间件"}, "answer": "D"}, {"id": 41, "type": "single", "question": "以下哪个不属于数据生命周期管理工作？", "options": {"A": "分类", "B": "分级", "C": "存储", "D": "管理"}, "answer": "D"}, {"id": 42, "type": "single", "question": "数据与外部进行交互的阶段叫做？", "options": {"A": "交换阶段", "B": "传输阶段", "C": "处理阶段", "D": "销毁阶段"}, "answer": "A"}, {"id": 43, "type": "single", "question": "重要数据系统遭到攻击，服务中断8小时以上的属于什么级别的数据安全事件？", "options": {"A": "特别重大数据安全事件", "B": "重大数据安全事件", "C": "较大数据安全事件", "D": "一般数据安全事件"}, "answer": "B"}, {"id": 44, "type": "single", "question": "BCSM的主要步骤是？", "options": {"A": "项目范围和计划编制>连续性计划>业务影响评估>批准和实现", "B": "项目范围和计划编制>业务影响评估>连续性计划>批准和实现", "C": "业务影响评估>连续性计划>项目范围和计划编制>批准和实现", "D": "连续性计划>业务影响评估>项目范围和计划编制>批准和实现"}, "answer": "B"}, {"id": 45, "type": "single", "question": "《数据安全法》规定，数据处理活动应当遵守法律、法规，尊重社会公德和伦理，遵守商业道德和职业道德，诚实守信，履行数据安全保护义务，承担什么责任？", "options": {"A": "社会责任", "B": "法律责任", "C": "道德责任", "D": "政治责任"}, "answer": "A"}, {"id": 46, "type": "single", "question": "《数据安全法》的立法目的是什么？", "options": {"A": "打击数据犯罪", "B": "促进数据交易", "C": "保护数据安全，促进数据开发利用", "D": "限制数据处理活动"}, "answer": "C"}, {"id": 47, "type": "single", "question": "数据处理者应当采取哪些措施来加强数据安全保护？", "options": {"A": "随意共享数据", "B": "不进行任何加密处理", "C": "建立数据安全管理制度", "D": "忽视数据安全风险评估"}, "answer": "C"}, {"id": 48, "type": "single", "question": "下列哪项不属于《数据安全法》规定的国家安全机关在数据安全工作中的职责？", "options": {"A": "承担数据安全监管职责", "B": "指导、督促数据处理者加强数据安全保护", "C": "组织开展数据安全宣传教育", "D": "决定数据处理者的经营策略"}, "answer": "D"}, {"id": 49, "type": "single", "question": "数据处理者应当采取什么措施保障数据免遭泄露、篡改、破坏、丢失、非法获取或者非法利用？", "options": {"A": "仅依赖技术手段", "B": "仅依赖管理制度", "C": "采取技术保护和管理措施", "D": "无需采取任何措施"}, "answer": "C"}, {"id": 50, "type": "single", "question": "《数据安全法》规定，国家开展数据安全监测预警，建立数据安全风险评估、报告、信息共享、监测预警机制。这些机制的目的是什么？", "options": {"A": "增加数据处理的复杂性", "B": "限制数据处理活动", "C": "提高数据安全风险应对能力", "D": "阻碍数据流通"}, "answer": "C"}, {"id": 51, "type": "single", "question": "下列关于数据安全风险评估的说法，错误的是？", "options": {"A": "数据安全风险评估应当由数据处理者自行进行", "B": "数据安全风险评估应当定期进行", "C": "数据安全风险评估结果应当作为改进数据安全保护措施的依据", "D": "数据安全风险评估不需要考虑外部环境的变化"}, "answer": "D"}, {"id": 52, "type": "single", "question": "根据《工业和信息化领域数据安全管理办法（试行）》，下列哪项不是数据处理者的义务？", "options": {"A": "制定数据安全计划", "B": "采取合理的数据安全技术措施", "C": "随意共享数据", "D": "定期开展数据安全风险评估"}, "answer": "C"}, {"id": 53, "type": "single", "question": "《关于促进数据安全产业发展的指导意见》提出，数据安全产业的发展应当坚持哪些原则？", "options": {"A": "封闭发展，拒绝合作", "B": "创新引领，安全可控", "C": "仅依赖国外技术", "D": "无序竞争，自由发展"}, "answer": "B"}, {"id": 54, "type": "single", "question": "根据《关于促进数据安全产业发展的指导意见》，数据安全产业与哪些领域的融合发展是重点支持的？", "options": {"A": "仅与信息技术领域", "B": "与信息技术、制造业、金融业等多个领域", "C": "与传统农业领域", "D": "与服务业，但不包括制造业"}, "answer": "B"}, {"id": 55, "type": "single", "question": "根据《工业和信息化领域数据安全管理办法（试行）》，下列关于数据出境安全评估的说法，哪项是正确的？", "options": {"A": "所有涉及重要数据的出境行为均需要进行安全评估", "B": "仅涉及个人信息的数据出境才需要进行安全评估", "C": "数据出境安全评估由数据处理者自行决定是否进行", "D": "数据出境安全评估的结果有效期为无限期"}, "answer": "A"}, {"id": 56, "type": "single", "question": "《工业和信息化领域数据安全管理办法（试行）》对于违反数据安全规定的行为有何规定？", "options": {"A": "无任何处罚措施", "B": "仅进行口头警告", "C": "依法追究法律责任", "D": "由企业内部处理"}, "answer": "C"}, {"id": 57, "type": "single", "question": "根据《关于促进数据安全产业发展的指导意见》，下列关于数据安全产业创新能力提升的说法，哪项是正确的？", "options": {"A": "仅通过引进国外先进技术即可实现创新能力提升", "B": "创新能力提升的关键在于依赖政府政策扶持", "C": "加强自主研发和成果转化是创新能力提升的重要途径", "D": "无需特别关注技术创新，市场需求自然会推动产业发展"}, "answer": "C"}, {"id": 58, "type": "single", "question": "在数据安全领域，加强数据安全监测预警体系建设有何作用？", "options": {"A": "无明显作用", "B": "有助于及时发现和应对数据安全风险", "C": "会增加企业成本，无实际效益", "D": "与数据安全风险应对无关"}, "answer": "B"}, {"id": 59, "type": "single", "question": "根据《工业和信息化领域数据安全管理办法（试行）》，数据处理者应当如何响应数据安全事件？", "options": {"A": "无需特别响应", "B": "仅进行内部处理", "C": "及时启动应急预案，采取补救措施", "D": "随意处理，无需预案"}, "answer": "C"}, {"id": 60, "type": "single", "question": "在《关于促进数据安全产业发展的指导意见》中，对于加强数据安全产品和服务供给的要求，下列哪项描述是不准确的？", "options": {"A": "鼓励企业研发具有核心竞争力的数据安全产品", "B": "推广经过安全认证的数据安全产品和服务", "C": "无需关注数据安全产品和服务的国际标准化", "D": "支持数据安全产品和服务在关键信息基础设施领域的应用"}, "answer": "C"}, {"id": 61, "type": "single", "question": "《信息安全技术 数据安全能力成熟度模型》的主要目的是什么？", "options": {"A": "评估企业数据安全能力", "B": "推广数据安全产品", "C": "普及数据安全知识", "D": "制定数据安全法规"}, "answer": "A"}, {"id": 62, "type": "single", "question": "根据《信息安全技术 数据安全能力成熟度模型》，数据安全能力成熟度分为几个等级？", "options": {"A": "2个", "B": "3个", "C": "5个", "D": "7个"}, "answer": "C"}, {"id": 63, "type": "single", "question": "在进行数据安全风险评估时，以下哪项是关键的第一步？", "options": {"A": "制定详细的风险应对措施", "B": "选择合适的风险评估方法和工具", "C": "识别并确定评估的范围和对象", "D": "汇总并报告评估结果"}, "answer": "C"}, {"id": 64, "type": "single", "question": "根据数据安全能力成熟度模型，企业在数据安全事件发生后，应首先采取什么措施？", "options": {"A": "掩盖事件真相", "B": "立即恢复数据服务", "C": "进行事件应急响应", "D": "追究相关责任"}, "answer": "C"}, {"id": 65, "type": "single", "question": "数据安全风险评估过程中，最重要的是什么？", "options": {"A": "数据收集", "B": "风险评估方法选择", "C": "风险识别与分析", "D": "风险应对措施制定"}, "answer": "C"}, {"id": 66, "type": "single", "question": "数据安全风险评估应遵循哪些原则？", "options": {"A": "科学性、公正性、客观性", "B": "主观性、随意性、灵活性", "C": "高效性、便捷性、低成本", "D": "保密性、封闭性、排他性"}, "answer": "A"}, {"id": 67, "type": "single", "question": "数据安全能力成熟度模型强调，企业在数据安全方面应首先确立哪项内容？", "options": {"A": "数据安全目标", "B": "业务发展计划", "C": "信息安全政策", "D": "数据治理架构"}, "answer": "A"}, {"id": 68, "type": "single", "question": "数据安全风险评估结果应如何应用？", "options": {"A": "仅作为内部参考", "B": "公开披露给所有利益相关者", "C": "指导数据安全管理和风险控制", "D": "直接作为法规执行依据"}, "answer": "C"}, {"id": 69, "type": "single", "question": "《信息安全技术 数据安全能力成熟度模型》主要评估企业的哪项能力？", "options": {"A": "信息技术应用能力", "B": "数据安全保护能力", "C": "网络安全防御能力", "D": "业务流程优化能力"}, "answer": "B"}, {"id": 70, "type": "single", "question": "数据安全风险评估中，哪些因素不是评估的重点？", "options": {"A": "数据泄露的可能性", "B": "数据处理的合规性", "C": "企业员工的个人喜好", "D": "数据访问的控制措施"}, "answer": "C"}, {"id": 71, "type": "single", "question": "数据安全风险评估报告应包含哪些内容？", "options": {"A": "评估人员的个人信息", "B": "风险评估的具体方法和工具", "C": "风险评估的结果和建议措施", "D": "企业的商业机密信息"}, "answer": "C"}, {"id": 72, "type": "single", "question": "开展数据安全风险评估，以下哪项不是风险评估的主要方法？", "options": {"A": "定性评估", "B": "定量评估", "C": "主观臆断", "D": "综合评估"}, "answer": "C"}, {"id": 73, "type": "single", "question": "在数据安全能力成熟度模型中，哪个阶段开始注重数据安全的量化管理和优化？", "options": {"A": "非正式执行级", "B": "计划跟踪级", "C": "充分定义级", "D": "量化控制级"}, "answer": "D"}, {"id": 74, "type": "single", "question": "《信息安全技术 数据安全能力成熟度模型》适用于哪些组织？", "options": {"A": "仅适用于大型企业", "B": "仅适用于政府机构", "C": "适用于所有涉及数据处理的组织", "D": "仅适用于信息技术企业"}, "answer": "C"}, {"id": 75, "type": "single", "question": "数据安全风险评估的主要目的是什么？", "options": {"A": "增加数据处理量", "B": "提高数据处理速度", "C": "识别和控制数据安全风险", "D": "降低数据安全投入成本"}, "answer": "C"}, {"id": 76, "type": "single", "question": "以下不属于 DBMS 数据子语言的是（）", "options": {"A": "数据操纵语言（DML）", "B": "数据压缩语言（DZL）", "C": "数据定义语言（DDL）", "D": "数据控制语言（DCL）"}, "answer": "B"}, {"id": 77, "type": "single", "question": "以下不属于数据操纵语言（DML）的是（）", "options": {"A": "插入 insert", "B": "删除 delete", "C": "创建 create", "D": "修改 update"}, "answer": "C"}, {"id": 78, "type": "single", "question": "数据库允许多个并发事务同时对其数据进行读写和修改的能力，防止多个事务并发执行时由于交叉执行而导致数据的不一致体现了数据库的（）", "options": {"A": "原子性", "B": "一致性", "C": "隔离性", "D": "持久性"}, "answer": "C"}, {"id": 79, "type": "single", "question": "以下不属于大数据特性的是（）", "options": {"A": "数据体量大", "B": "数据价值密度大", "C": "数据实时性高", "D": "数据维度多"}, "answer": "B"}, {"id": 80, "type": "single", "question": "大数据存储技术首先要解决的是数据海量化和快速增长需求，其次是处理格式多样化的数据。谷歌文件系统（GFS）和 Hadoop 的（）奠定了大数据存储技术的基础", "options": {"A": "分布式文件系统", "B": "分布式数据库系统", "C": "关系型数据库系统", "D": "非结构化数据分析系统"}, "answer": "A"}, {"id": 81, "type": "single", "question": "在大数据关键技术中，Hadoop 的分布式文件系统 HDFS 属于大数据（）。", "options": {"A": "存储技术", "B": "分析技术", "C": "并行分析技术", "D": "挖掘技术"}, "answer": "A"}, {"id": 82, "type": "single", "question": "国家统筹()，坚持以数据促进数据安全，以数据安全保障数据开发利用和产业发展。", "options": {"A": "发展和安全", "B": "利用和保护", "C": "成本和效益", "D": "自主和引用"}, "answer": "A"}, {"id": 83, "type": "single", "question": "《数据安全法》维护数据安全，应当坚持(),建立健全 ( ) , 提 高 ( ) 。", "options": {"A": "数据安全治理体系，国家安全观，数据安全治理体系", "B": "国家安全观，数据安全治理体系，数据安全保障能力", "C": "数据安全保障能力，数据安全治理体系，国家安全观", "D": "国家安全观，数据安全保障能力，数据安全治理体系"}, "answer": "B"}, {"id": 84, "type": "single", "question": "《数据安全法》中的“数据”是指()。", "options": {"A": "任何电子或者非电子形式对信息的记录", "B": "进行各种统计、计算、科学研究或技术设计等所依据的数值", "C": "网络数据", "D": "只包括电子形式的信息记录"}, "answer": "A"}, {"id": 85, "type": "single", "question": "《数据安全法》规定:在中华人民共和国〔〕开展数据处理活动及其安全监管，适用本法。在中华人民共和国〔〕开展数据处理活动，损害中华人民共和国国家安全、公共利益或者公民、组织合法权益的，依法追究法律责任。", "options": {"A": "大陆、全境", "B": "境内、境外", "C": "国内、国外", "D": "国内、全境"}, "answer": "B"}, {"id": 86, "type": "single", "question": "数据的敏感级别由哪方决定？", "options": {"A": "数据管理员", "B": "数据使用者", "C": "数据所有者", "D": "都可以"}, "answer": "C"}, {"id": 87, "type": "single", "question": "下列选项哪个不是数据安全三要素（）", "options": {"A": "机密性", "B": "可用性", "C": "完整性", "D": "易用性"}, "answer": "D"}, {"id": 88, "type": "single", "question": "（）应当包括处理的重要数据的种类、数量，开展数据处理活动的情况，面临的数据安全风险及其应对措施等。", "options": {"A": "漏洞扫描报告", "B": "生产管理报告", "C": "风险评估报告", "D": "安全管理文档"}, "answer": "C"}, {"id": 89, "type": "single", "question": "因违反规定处理个人信息，或者处理个人信息未履行个人信息保护义务被责令改正但拒不改正的，可以并处（）以下罚款。", "options": {"A": "10 万", "B": "30 万", "C": "50 万", "D": "100 万"}, "answer": "D"}, {"id": 90, "type": "single", "question": "根据《数据安全法》的规定，公安机关、国家安全机关在各自职责范围内承担数据安全监管职责，以 下说法错误的是（）", "options": {"A": "公安机关、国家安全机关调取有关组织和个人的数据应当出于维护国家安全或者侦查 犯罪的需要。", "B": "公安机关、国家安全机关调取有关组织和个人的数据应当经过严格的批准手续，依法 进行。", "C": "公安机关、国家安全机关依法调取有关组织和个人的数据，有关组织和个人可以予以 拒绝。", "D": "有关组织和个人拒不配合数据调取的，可以由有关主管部门责令改正，给予警告，并处五万元以上五十万元以下罚款。"}, "answer": "C"}, {"id": 91, "type": "single", "question": "下列哪项不属于数据安全生存周期安全过程域（）", "options": {"A": "数据采集安全", "B": "数据共享安全", "C": "数据存储安全", "D": "数据供应链安全"}, "answer": "D"}, {"id": 92, "type": "single", "question": "从数据安全能力成熟度等级（）开始，增加了技术工具维度要求", "options": {"A": "二、计划跟踪", "B": "三、充分定义", "C": "四、量化控制", "D": "五、持续优化"}, "answer": "B"}, {"id": 93, "type": "single", "question": "数据安全能力成熟度等级（）对参与国际、国家或行业相关标准制定提出了要求", "options": {"A": "二、计划跟踪", "B": "三、充分定义", "C": "四、量化控制", "D": "五、持续优化"}, "answer": "D"}, {"id": 94, "type": "single", "question": "国家建立的数据安全工作协调机制的主要目标是什么？（）", "options": {"A": "促进数据开发利用的技术创新", "B": "推广数据安全产品的商业化", "C": "统筹协调有关部门加强数据安全风险信息的获取、分析、研判、预警工作", "D": "改善数据隐私保护政策"}, "answer": "C"}, {"id": 95, "type": "single", "question": "工业和信息化领域数据包括以下哪个类型？（）", "options": {"A": "金融数据", "B": "工业数据", "C": "医疗数据", "D": "农业数据"}, "answer": "B"}, {"id": 96, "type": "single", "question": "对工业和信息化领域发展、生产、运行和经济利益等造成严重影响的数据属于（）", "options": {"A": "一般数据", "B": "重要数据", "C": "严重数据", "D": "核心数据"}, "answer": "B"}, {"id": 97, "type": "single", "question": "数据安全风险评估中，下列哪项不是重要评估内容之一（）", "options": {"A": "数据处理目的、方式、范围是否合法、正当、必要", "B": "数据安全管理制度、流程策略的制定和落实情况", "C": "数据备份策略的落实情况", "D": "数据安全技术防护能力建设及应用情况"}, "answer": "C"}, {"id": 98, "type": "single", "question": "对于发现存在较大安全风险的数据处理活动，行业监管部门可以采取以下哪种措施（）", "options": {"A": "给予奖励", "B": "发出警告信函", "C": "进行约谈并要求整改", "D": "暂停行政审批程序"}, "answer": "C"}, {"id": 99, "type": "single", "question": "重要数据和核心数据处理者委托第三方评估机构开展数据安全风险评估时，应确保评估过程具备哪些要素（）", "options": {"A": "随机选择的评估团队成员", "B": "完备的评估工作方案和有效的技术评测工具", "C": "与行业无关的评估标准", "D": "仅包括技术保障方面的评估内容"}, "answer": "B"}, {"id": 100, "type": "single", "question": "《数据安全法》中，（ ）是核心数据的范畴。", "options": {"A": "涉密数据", "B": "重要数据", "C": "商密数据", "D": "关系国家安全、国民经济命脉、重要民生、重大公共利益等数据"}, "answer": "D"}, {"id": 101, "type": "single", "question": "根据《中华人民共和国数据安全法》规定，维护数据安全，应当坚持总体国家安全观，建立健全数据安全（ ），提高数据安全保障能力。", "options": {"A": "保障体系", "B": "治理体系", "C": "标准体系", "D": "评估体系"}, "answer": "B"}, {"id": 102, "type": "single", "question": "国家建立（ ），根据数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护。", "options": {"A": "数据分类分级保护制度", "B": "数据保护制度", "C": "数据管理制度", "D": "数据安全治理制度"}, "answer": "A"}, {"id": 103, "type": "single", "question": "关于CA和数字证书的关系，以下说法不正确的是（ ）", "options": {"A": "数字证书是保证双方之间的通讯安全的电子信任关系，他由C发", "B": "数字证书一般依靠CA中心的对称密钥机制来实现", "C": "在电子交易中，数字证书可以用于表明参与方的身份", "D": "数字证书能以一种不能被假冒的方式证明证书持有人身份"}, "answer": "B"}, {"id": 104, "type": "single", "question": "以下哪个部分不是CA认证中心的组成部分？", "options": {"A": "证书生成客户端", "B": "注册服务器", "C": "证书申请受理和审核机构", "D": "认证中心服务器"}, "answer": "A"}, {"id": 105, "type": "single", "question": "数字签名的作用是？", "options": {"A": "数据加密", "B": "验证数据完整性", "C": "防止数据丢失", "D": "加速数据处理"}, "answer": "B"}, {"id": 106, "type": "single", "question": "数字水印的特点不包括？", "options": {"A": "隐蔽性", "B": "稳定性", "C": "易检测性", "D": "鲁棒性"}, "answer": "C"}, {"id": 107, "type": "single", "question": "在数字签名中，公钥用于？", "options": {"A": "加密数据", "B": "解密数据", "C": "验证签名", "D": "生成签名"}, "answer": "C"}, {"id": 108, "type": "single", "question": "哈希函数在数字签名中的作用是？", "options": {"A": "加密数据", "B": "生成数据标识", "C": "验证数据完整性", "D": "解密数据"}, "answer": "C"}, {"id": 109, "type": "single", "question": "盲水印指的是？", "options": {"A": "可见的水印", "B": "无需原始数据即可检测的水印", "C": "必须破坏数据才能嵌入的水印", "D": "加密后的水印"}, "answer": "B"}, {"id": 110, "type": "single", "question": "数字水印的鲁棒性是指？", "options": {"A": "水印嵌入速度", "B": "水印可见程度", "C": "抵抗攻击能力", "D": "占用存储空间"}, "answer": "C"}, {"id": 111, "type": "single", "question": "数据脱敏的主要目的是什么？", "options": {"A": "数据加密", "B": "隐私保护", "C": "数据备份", "D": "数据恢复"}, "answer": "B"}, {"id": 112, "type": "single", "question": "动态数据脱敏一般用在何处？", "options": {"A": "开发环境", "B": "生产环境", "C": "备份环境", "D": "验证环境"}, "answer": "B"}, {"id": 113, "type": "single", "question": "数据脱敏中无效化的方法是什么？", "options": {"A": "数据加密", "B": "数据替换", "C": "数据截断或隐藏", "D": "数据备份"}, "answer": "C"}, {"id": 114, "type": "single", "question": "标识符在数据脱敏中的作用是？", "options": {"A": "数据加密", "B": "数据定位", "C": "数据替换", "D": "数据删除"}, "answer": "B"}, {"id": 115, "type": "single", "question": "K-匿名方法主要用于什么？", "options": {"A": "数据加密", "B": "数据脱敏", "C": "数据备份", "D": "数据恢复"}, "answer": "B"}, {"id": 116, "type": "single", "question": "数据权限控制的主要目的是什么？", "options": {"A": "提高数据处理速度", "B": "限制对数据的访问", "C": "增加数据存储空间", "D": "优化数据结构"}, "answer": "B"}, {"id": 117, "type": "single", "question": "以下哪个不是数据权限控制的要素？", "options": {"A": "用户", "B": "角色", "C": "时间", "D": "权限"}, "answer": "C"}, {"id": 118, "type": "single", "question": "在数据权限控制中，通常使用哪种模式进行设计？", "options": {"A": "基于用户的访问控制（UBAC）", "B": "基于角色的访问控制（RBAC）", "C": "基于行/列的细粒度权限控制（通常指行级权限/数据范围）", "D": "基于属性的访问控制（ABAC）"}, "answer": "B"}, {"id": 119, "type": "single", "question": "在企业内部数据库访问中，数据权限控制的作用是什么？", "options": {"A": "提高数据处理速度", "B": "确保每个岗位员工获得所需数据的访问权", "C": "增加数据存储空间", "D": "优化数据结构"}, "answer": "B"}, {"id": 120, "type": "single", "question": "开展数据处理活动应当（），发现数据安全缺陷、漏洞等风险时，应当立即采取补救措施。", "options": {"A": "加强安全管理", "B": "加强团队管理", "C": "加强技术培养", "D": "加强风险监测"}, "answer": "D"}, {"id": 121, "type": "single", "question": "《数据安全法》从哪个角度为执行者设定了合规的要求（）", "options": {"A": "信息保护角度", "B": "数据保护角度", "C": "信息安全角度", "D": "数据与安全的角度"}, "answer": "D"}, {"id": 122, "type": "single", "question": "2024年2月3日，工业和信息化部应发了《工业领域数据安全能力提升实施方案（2024-2026年）》，该方案的重点任务不包括（）。", "options": {"A": "提升工业企业数据共享能力", "B": "提升工业企业数据保护能力", "C": "提升数据安全监管能力", "D": "提升数据安全产业支撑能力"}, "answer": "A"}, {"id": 123, "type": "single", "question": "《中华人民共和国数据安全法》自2021年9月1日起施行。依据该法，下列说法错误的是", "options": {"A": "省级以上人民政府应当将数字经济发展纳入本级国民经济和社会发展规划", "B": "国家工业和信息化主管部门负责国家数据安全工作的决策和议事协调", "C": "国家建立数据分类分级保护制度，对数据实行分类分级保护", "D": "从事数据交易中介服务的机构提供服务，应当要求数据提供方说明数据来源"}, "answer": "B"}, {"id": 124, "type": "single", "question": "GB/T 43697-2024《数据安全技术 数据分类分级规则》中对于衍生数据的定义是（）。", "options": {"A": "组织在自身生产经营活动中收集、产生的不涉及个人信息和公共利益的数据。", "B": "经过统计、关联、挖掘、聚合、去标识化等加工活动而产生的数据。", "C": "各级政务部门、具有公共管理和服务职能的组织及其技术支撑单位，在依法履行公共事务管理职责或提供公共服务过程中收集、产生的数据。", "D": "在某个行业领域内依法履行工作职责或开展业务活动中收集和产生的数据。"}, "answer": "B"}, {"id": 125, "type": "single", "question": "重要数据的处理者应当按照规定对其数据处理活动定期开展风险评估，并向有关主管部门报送（）。", "options": {"A": "数据安全风险清单", "B": "风险报告单", "C": "风险评估报告", "D": "应急补救措施"}, "answer": "C"}, {"id": 126, "type": "single", "question": "国家大力推进电子政务建设，提高政务数据的（），提升运用数据服务经济社会发展的能力。", "options": {"A": "科学性、准确性、时效性", "B": "公益性、准确性、时效性", "C": "科学性、准确性、高效性", "D": "公益性、准确性、高效性"}, "answer": "A"}, {"id": 127, "type": "single", "question": "国家保护个人、组织与数据有关的权益，鼓励数据依法合理有效利用，保障数据依法有序自由流动，促进以（）为关键要素的数字经济发展。", "options": {"A": "技术", "B": "创新", "C": "数据", "D": "信息"}, "answer": "C"}, {"id": 128, "type": "single", "question": "从事数据交易中介服务的机构提供服务，应当要求数据提供方说明（），审核交易双方的身份，并留存审核、交易记录。", "options": {"A": "数据用途", "B": "数据范围", "C": "数据来源", "D": "数据属性"}, "answer": "C"}, {"id": 129, "type": "single", "question": "某单位小王违反法律、行政法规等有关规定，向朋友小李提供单位已脱敏处理但未公开的数据。小王的行为属于（）。", "options": {"A": "数据泄露", "B": "数据篡改", "C": "非法共享数据", "D": "非法使用数据"}, "answer": "C"}, {"id": 130, "type": "single", "question": "违反国家核心数据管理制度，危害国家主权、安全和发展利益的，由有关主管部门处最高（）的罚款，并根据情况责令暂停相关业务、停业整顿、吊销相关业务许可证或者吊销营业执照。", "options": {"A": "500万元", "B": "1000万元", "C": "1500万元", "D": "2000万元"}, "answer": "B"}, {"id": 131, "type": "single", "question": "以下关于数字签名说法正确的是（ ）", "options": {"A": "数字签名是在所传输的数据后附加上一段和传输数据毫无关系的数字信息", "B": "数字签名能够解决数据的加密传输，即安全传输问题", "C": "数字签名一般采用对称加密机制", "D": "数字签名能够解决篡改、伪造等安全性问题"}, "answer": "D"}, {"id": 132, "type": "single", "question": "关于数据脱敏与数据加密技术的描述，错误的是（）。", "options": {"A": "数据加密是数据脱敏的一种方式", "B": "数据脱敏技术不需要对所有信息进行加密，保存了数据原有的格式，在不需要解密的条件下，降低数据敏感度", "C": "脱敏技术兼顾了数据安全与数据使用，脱敏后的数据依然可以用于分析和测试", "D": "数据加密更多适用于长期数据储存或数据传输"}, "answer": "A"}, {"id": 133, "type": "single", "question": "数据分类可根据数据管理和使用需求，结合已有数据分类基础，灵活选择业务属性将数据细化分类。开展行业领域数据分类步骤是（）。①明确数据范围 ② 细化业务分类 ③业务属性分类 ④ 确定分类规则", "options": {"A": "①②③④", "B": "①④②③", "C": "④③①②", "D": "④①②③"}, "answer": "D"}, {"id": 134, "type": "multi", "question": "属于大数据特征的是？", "options": {"A": "Velocity", "B": "Variety", "C": "Value", "D": "Volume"}, "answer": "ABCD"}, {"id": 135, "type": "multi", "question": "安全密码的设置原则有哪些？", "options": {"A": "不用空口令", "B": "不连续不规律", "C": "不同平台同密码", "D": "不含个人信息"}, "answer": "ABD"}, {"id": 136, "type": "multi", "question": "RBAC 模型的构成有（）", "options": {"A": "用户分配", "B": "权限分配", "C": "激活角色", "D": "会话"}, "answer": "ABCD"}, {"id": 137, "type": "multi", "question": "数据脱敏的技术原则有（）", "options": {"A": "有效性", "B": "安全可控", "C": "安全审计", "D": "可配置性"}, "answer": "ABCD"}, {"id": 138, "type": "multi", "question": "国家制定政务数据开放目录，构建 的政务数据开放平台，推动政务数据开放利用（ ）", "options": {"A": "公平开放", "B": "统一规范", "C": "互联互通", "D": "安全可控"}, "answer": "BCD"}, {"id": 139, "type": "multi", "question": "永恒之蓝该勒索软件被认为是一种蠕虫病毒，不属于名称的是？", "options": {"A": "Wanna Decrypt0", "B": "Wanna Cryptor", "C": "Wcry", "D": "Wannar0ry"}, "answer": "AD"}, {"id": 140, "type": "multi", "question": "下列涉及到数据存储以及跨境传输的法律有？（）", "options": {"A": "《中华人民共和国国家安全法》", "B": "《中华人民共和国数据安全法》", "C": "《中华人民共和国保守国家秘密法》", "D": "《个人信息保护法》"}, "answer": "ABCD"}, {"id": 141, "type": "multi", "question": "在进行数据安全风险评估时，需要采取哪些方法和工具？", "options": {"A": "渗透测试", "B": "安全演练", "C": "安全审计", "D": "防火墙配置"}, "answer": "ABC"}, {"id": 142, "type": "multi", "question": "在进行数据安全风险评估时，需要考虑哪些因素？", "options": {"A": "网络拓扑结构", "B": "系统漏洞和弱点", "C": "外部威胁和攻击方式", "D": "内部员工行为和安全意识"}, "answer": "ABCD"}, {"id": 143, "type": "multi", "question": "数据使用时，SQL注入可以造成严重的数据泄露，以下哪些措施可以帮助防止SQL注入？", "options": {"A": "使用参数化查询或预编译语句", "B": "输入验证和过滤", "C": "最大权限原则", "D": "避免直接拼接SQL语句"}, "answer": "ABD"}, {"id": 144, "type": "multi", "question": "使用防火墙可以防止数据存储时被破坏，请选择正确的说法：", "options": {"A": "防火墙是一种硬件设备，可以阻止未经授权的访问和攻击进入网络系统。", "B": "防火墙是一种软件程序，可以对数据进行加密处理，以防止数据泄露。", "C": "防火墙是一种数据备份工具，可以将数据存储在多个地方，以防止数据丢失。", "D": "防火墙是一种网络协议，可以阻止非法的访问和攻击。"}, "answer": "A"}, {"id": 145, "type": "multi", "question": "数据安全风险评估的目标是什么？", "options": {"A": "发现并纠正系统中的安全漏洞，避免数据泄露", "B": "预测和预防潜在的网络威胁", "C": "提高网络系统的安全性和稳定性", "D": "政府要求，必须要做"}, "answer": "ABC"}, {"id": 146, "type": "multi", "question": "Gartner DSG的主要目标有（）", "options": {"A": "组织协调", "B": "标准化", "C": "科学合理", "D": "有据可依"}, "answer": "ABCD"}, {"id": 147, "type": "multi", "question": "在数据传输过程中，有三个关键要素，这三个要素是（ ）。", "options": {"A": "传输的数据", "B": "传输的工具", "C": "传输的节点", "D": "传输的通道"}, "answer": "ACD"}, {"id": 148, "type": "multi", "question": "wireshark是一个协议分析软件，可以用于分析常见的数据传输协议。下列关于wireshark的常见功能说法正确的是（ ）。", "options": {"A": "协议分级--点击后原数据包就可以自动按照协议进行分类", "B": "会话--统计通信会话之间接收和发送的数据包和字节数，通过这个功能可以找出网络中哪个会话最占用带宽", "C": "端点--统计每个端点的地址、发送或收到的数据包的数量和字节", "D": "导出HTTP对象--可以导出HTTP传输过程中的HTML、图片、JavaScript等文件"}, "answer": "ABCD"}, {"id": 149, "type": "multi", "question": "利用SSL协议的可以保证传输数据的（）。", "options": {"A": "可控性", "B": "保密性", "C": "完整性", "D": "安全性"}, "answer": "BC"}, {"id": 150, "type": "multi", "question": "属于行业实践内容是？", "options": {"A": "电信行业", "B": "金融行业", "C": "政务行业", "D": "能源行业"}, "answer": "ABCD"}, {"id": 151, "type": "multi", "question": "近年来，我国多措并举、多管齐下，陆续健全了与数据安全相关的法律体系。从防护对象来看，以下哪些法律法规针对个人信息或企业数据安全建设提出明确防护目标，是数据保护和数据利用的整体性法律框架。", "options": {"A": "《个人信息保护法》", "B": "《数据安全法》", "C": "《密码法》", "D": "《刑法》"}, "answer": "AB"}, {"id": 152, "type": "multi", "question": "下列说法中关于DES子密钥的生成，说法正确的是（）。", "options": {"A": "DES的初始密钥为64位，但真正使用到的初始密钥是去掉奇偶校验位后的56位密钥。", "B": "经过置换PC-1后，原密钥分为两组分别进行循环左移操作，循环左移的具体位数和轮数有关。", "C": "经过置换PC-1后，原密钥分为两组分别进行循环右移操作，循环右移的具体位数和轮数无关。", "D": "经过循环移位操作后，使用PC-2进行置换，得到的置换结果即为子密钥Ki."}, "answer": "ABD"}, {"id": 153, "type": "multi", "question": "下列关于AES算法流程说法正确的是（）。", "options": {"A": "每一轮中一定包含字节代换、行位移、列混合和轮密钥加。", "B": "不管是加密解密，第一轮迭代前需要进行轮密钥加。", "C": "算法迭代的轮数和明文以及密钥位数有关。", "D": "AES使用Feistel结构。"}, "answer": "BC"}, {"id": 154, "type": "multi", "question": "不需要定义初始变量IV的分组加密模式有哪些？", "options": {"A": "ECB", "B": "CBC", "C": "OFB", "D": "CTR"}, "answer": "A"}, {"id": 155, "type": "multi", "question": "通常主要包括存储管理器和查询处理器两大部分如：", "options": {"A": "Mysql", "B": "tomcat", "C": "apache", "D": "Oracle"}, "answer": "AD"}, {"id": 156, "type": "multi", "question": "数据生命周期管理的特征有？", "options": {"A": "改善用户体验", "B": "降低运营效率", "C": "高效存储访问", "D": "遵守数据法规"}, "answer": "ACD"}, {"id": 157, "type": "multi", "question": "以下哪些属于传输阶段的管控？", "options": {"A": "对外接口及访问控制管理", "B": "差异化分级管控措施", "C": "数据完整性校验", "D": "对端系统安全保密确认"}, "answer": "ABCD"}, {"id": 158, "type": "multi", "question": "BCSM在企业中的应用有？", "options": {"A": "建立完善的危机管理组织机构", "B": "制定企业应对灾难的完整预案", "C": "确保预案和计划的贯彻实施和维护更新", "D": "建立分级响应机制，完善控制事件全过程的各项预案"}, "answer": "ABCD"}, {"id": 159, "type": "multi", "question": "下列哪些行为可能违反《数据安全法》的规定？", "options": {"A": "非法获取数据", "B": "篡改数据", "C": "泄露数据", "D": "合法利用数据"}, "answer": "ABC"}, {"id": 160, "type": "multi", "question": "数据处理者应当采取哪些措施来保障数据安全？", "options": {"A": "建立数据安全管理制度", "B": "制定数据安全事件应急预案", "C": "加强数据安全风险监测", "D": "随意分享数据"}, "answer": "ABC"}, {"id": 161, "type": "multi", "question": "下列哪些属于《数据安全法》规定的数据处理者应当履行的义务？", "options": {"A": "采取技术措施保障数据安全", "B": "配合国家安全机关的数据安全监管工作", "C": "对外提供数据前进行安全评估", "D": "拒绝任何数据安全检查和评估"}, "answer": "ABC"}, {"id": 162, "type": "multi", "question": "数据出境安全评估的目的是什么？", "options": {"A": "防止数据被非法获取", "B": "促进数据跨境流动", "C": "评估数据出境的风险", "D": "限制数据出境活动"}, "answer": "AC"}, {"id": 163, "type": "multi", "question": "《数据安全法》规定，国家建立数据安全风险评估、报告、信息共享、监测预警机制，这些机制的作用是什么？", "options": {"A": "及时发现数据安全风险", "B": "提高数据安全防护能力", "C": "增加数据处理的复杂性", "D": "促进数据流通和利用"}, "answer": "AB"}, {"id": 164, "type": "multi", "question": "数据安全保护责任制度应当明确哪些内容？", "options": {"A": "数据安全负责人和管理机构", "B": "数据安全保护责任", "C": "数据安全事件应急预案", "D": "数据处理的具体流程"}, "answer": "ABC"}, {"id": 165, "type": "multi", "question": "《关于促进数据安全产业发展的指导意见》中，促进数据安全产业发展的措施包括哪些？", "options": {"A": "加强数据安全技术研发", "B": "培养数据安全人才", "C": "推进数据安全标准制定", "D": "推动数据安全产品和服务创新"}, "answer": "ABCD"}, {"id": 166, "type": "multi", "question": "在数据安全能力成熟度模型中，哪些因素会影响企业的数据安全能力？", "options": {"A": "组织结构", "B": "技术水平", "C": "员工素质", "D": "制度流程"}, "answer": "ABCD"}, {"id": 167, "type": "multi", "question": "根据《信息安全技术 数据安全能力成熟度模型》，以下哪些是提高数据安全能力成熟度的重要措施？", "options": {"A": "建立完善的数据安全管理制度", "B": "加强数据安全培训和教育", "C": "开展数据安全风险评估", "D": "提升数据安全技术和防护能力"}, "answer": "ABCD"}, {"id": 168, "type": "multi", "question": "《关于促进数据安全产业发展的指导意见》提出，数据安全产业应如何发展？", "options": {"A": "深化产学研用合作", "B": "推动数据安全技术创新", "C": "强化基础设施建设", "D": "加强国际合作与交流"}, "answer": "ABCD"}, {"id": 169, "type": "multi", "question": "根据《工业和信息化领域数据安全管理办法（试行）》，企业在处理重要数据时，应如何确保数据安全？", "options": {"A": "采取必要的数据加密措施", "B": "定期进行数据备份和恢复", "C": "随意处置数据", "D": "建立数据安全监测和预警机制"}, "answer": "ABD"}, {"id": 170, "type": "multi", "question": "在数据安全能力成熟度模型中，哪些环节对于提升数据安全能力至关重要？", "options": {"A": "数据分类与标识", "B": "数据访问控制", "C": "数据安全监测", "D": "数据安全事件处置"}, "answer": "ABCD"}, {"id": 171, "type": "multi", "question": "数据安全风险评估应包含哪些内容？", "options": {"A": "数据收集和处理的安全性", "B": "数据存储和传输的可靠性", "C": "忽视数据安全政策合规性", "D": "数据销毁和处置的规范性"}, "answer": "ABD"}, {"id": 172, "type": "multi", "question": "在数据安全保护工作中，以下哪些行为是推荐的？", "options": {"A": "定期进行数据安全培训", "B": "加强数据访问审计", "C": "及时进行数据安全漏洞修复", "D": "建立数据安全责任制"}, "answer": "ABCD"}, {"id": 173, "type": "multi", "question": "《工业和信息化部等十六部门关于促进数据安全产业发展的指导意见》中提升产业创新能力包括哪几个部分（）", "options": {"A": "加强核心技术攻关", "B": "构建数据安全产品体系", "C": "促进数据安全发展", "D": "布局新兴领域融合创新"}, "answer": "ABD"}, {"id": 174, "type": "multi", "question": "数据收集过程中，应当根据数据安全级别采取相应的安全措施，加强（）和（）收集人员、设备的管理，并对收集时间、类型、数量、频度、流向等进行记录。", "options": {"A": "所有数据", "B": "一般数据", "C": "重要数据", "D": "核心数据"}, "answer": "CD"}, {"id": 175, "type": "multi", "question": "工业和信息化领域数据处理者应当根据传输的数据（），制定安全策略并采取保护措施。传输重要数据和核心数据的，应当采取校验技术、密码技术、安全传输通道或者安全传输协议等措施。", "options": {"A": "级别", "B": "类型", "C": "条件", "D": "应用场景"}, "answer": "ABD"}, {"id": 176, "type": "multi", "question": "涉及跨境（）重要数据和核心数据的，或者跨主体提供、转移、委托处理核心数据的，地方行业监管部门对评估报告审查后，报工业和信息化部。工业和信息化部按照国家有关规定进行复核。", "options": {"A": "提供", "B": "转移", "C": "委托处理", "D": "销毁"}, "answer": "ABC"}, {"id": 177, "type": "multi", "question": "重要数据的处理者应当按照规定对其数据处理活动定期开展风险评估。风险评估报告应当包括（）。", "options": {"A": "处理的重要数据的种类、数量", "B": "数据对象的分类分级情况", "C": "开展数据处理活动的情况", "D": "面临的数据安全风险及其应对措施"}, "answer": "ACD"}, {"id": 178, "type": "multi", "question": "工业和信息化领域数据处理者应当将本单位重要数据和核心数据目录向有关部门备案。备案内容包括（）。", "options": {"A": "数据来源", "B": "数据规模", "C": "数据内容", "D": "数据类别"}, "answer": "ABD"}, {"id": 179, "type": "multi", "question": "工业和信息化领域数据处理者应当对数据处理活动负安全主体责任，对各类数据实行分级防护，不同级别数据同时被处理且难以分别采取保护措施的，应当按照其中级别最高的要求实施保护，确保数据持续处于有效保护和合法利用的状态。下列关于数据处理者的做法正确的是（）。", "options": {"A": "建立数据全生命周期安全管理制度，针对不同级别数据，制定数据收集、存储、使用、加工、传输、提供、公开等环节的具体分级防护要求和操作规程", "B": "根据需要配备数据安全管理人员，统筹负责数据处理活动的安全监督管理，协助行业监管部门开展工作", "C": "根据应对数据安全事件的需要，制定应急预案，并开展应急演练", "D": "定期对从业人员开展数据安全教育和培训"}, "answer": "ABCD"}, {"id": 180, "type": "multi", "question": "重要数据和核心数据处理者按照国家法律法规、行业监管部门有关规定以及评估标准，开展数据安全风险评估，重点评估内容有（）。", "options": {"A": "数据处理目的、方式、范围是否合法、正当、必要", "B": "数据安全管理制度、流程策略的制定和落实情况", "C": "数据安全组织架构、岗位配备和职责履行情况", "D": "数据安全技术防护能力建设及应用情况"}, "answer": "ABCD"}, {"id": 181, "type": "multi", "question": "数据安全风险评估结果在有效期内出现以下情形之一的，重要数据和核心数据处理者对发生变化及其影响的部分，重新开展数据安全风险评估，并更新评估报告。（）", "options": {"A": "拟新增跨主体提供、委托处理、转移重要数据或者核心数据的", "B": "发生涉及重要数据、核心数据的安全事件的", "C": "重要数据、核心数据预计将发生重大变更的", "D": "重要数据、核心数据安全状态发生变化对数据安全造成不利影响的，包括但不限于数据处理目的、方式、适用范围和安全制度策略等发生重大调整的"}, "answer": "ABCD"}, {"id": 182, "type": "multi", "question": "按照相关工业和信息化领域数据级别划分方法，危害程度以下条件之一的，可列为核心数据。（）", "options": {"A": "对工业和信息化领域及其重要骨干企业、关键信息基础设施、重要资源等造成重大影响", "B": "造成重大数据安全事件或生产安全事故，对公共利益或者个人、组织合法权益造成严重影响，社会负面影响大", "C": "受影响的用户和企业数量较少、生产生活区域范围较小、持续时间较短，对企业经营、行业发展、技术进步和产业生态等影响较小", "D": "对工业生产运营、电信网络和互联网运行服务、无线电业务开展等造成重大损害，导致大范围停工停产、大面积无线电业务中断、大规模网络与服务瘫痪、大量业务处理能力丧失等"}, "answer": "ABD"}, {"id": 183, "type": "multi", "question": "数据脱敏（Data Masking），指的是通过脱敏规则对敏感信息（比如，身份证号、手机号、客户姓名、客户地址等 ）进行数据变形，从而降低数据的敏感度，降低个人隐私泄露的风险，实现隐私数据的可靠保护。业界常见的脱敏规则有（）。", "options": {"A": "替换", "B": "加密", "C": "截断", "D": "掩码"}, "answer": "ABCD"}, {"id": 184, "type": "multi", "question": "根据《中华人民共和国数据安全法》，以下是关于投诉和举报的正确描述？", "options": {"A": "个人和组织都有权对违反《中华人民共和国数据安全法》规定的行为进行投诉", "B": "个人和组织只能对违法行为进行投诉，而不能举报", "C": "收到投诉或举报的部门应及时依法处理", "D": "收到投诉或举报的部门不需要处理，可以选择不予理睬"}, "answer": "AC"}, {"id": 185, "type": "multi", "question": "数据安全事件应急工作原则有（）。", "options": {"A": "坚持统一领导、分级负责", "B": "坚持统一指挥、密切协同、快速反应、科学处置", "C": "坚持“谁管业务、谁管业务数据、谁管数据安全”，落实数据处理者的数据安全主体责任", "D": "坚持充分发挥各方面力量，共同做好数据安全事件应急处置工作"}, "answer": "ABCD"}, {"id": 186, "type": "multi", "question": "根据《中华人民共和国数据安全法》，以下哪些是正确的描述？", "options": {"A": "投诉、举报人的相关信息应予以保密", "B": "投诉、举报人的相关信息可以随意公开", "C": "有关主管部门有责任保护投诉、举报人的合法权益", "D": "有关主管部门可以泄露投诉、举报人的相关信息以便处理投诉、举报"}, "answer": "AC"}, {"id": 187, "type": "multi", "question": "《数据安全法》的亮点有（） 。", "options": {"A": "增加对数据泄露活动危机国家安全的处罚力度", "B": "加强对国家数据安全工作的重心，确定行业安全责任、监管与统筹协调的主体", "C": "更加重视数据安全制度的建设", "D": "从法律上明确“数据”的定义"}, "answer": "ABCD"}, {"id": 188, "type": "multi", "question": "根据《中华人民共和国数据安全法》，选择以下正确的说法。", "options": {"A": "中华人民共和国主管机关可以根据有关法律和国际条约处理外国司法或执法机构关于提供数据的请求。", "B": "境内的组织、个人可以自行决定是否向外国司法或执法机构提供存储于中国境内的数据。", "C": "非经中华人民共和国主管机关批准，境内的组织、个人不得向外国司法或者执法机构提供存储于中华人民共和国境内的数据。", "D": "组织、个人可以无需批准地向外国司法或执法机构提供存储于中华人民共和国境内的数据。"}, "answer": "AC"}, {"id": 189, "type": "multi", "question": "国家数据安全工作协调机制统筹协调有关部门加强数据安全风险信息的（）工作。", "options": {"A": "获取", "B": "分析", "C": "研判", "D": "预警"}, "answer": "ABCD"}, {"id": 190, "type": "multi", "question": "《中华人民共和国数据安全法》中数据处理包括", "options": {"A": "数据的收集、存储", "B": "数据的使用、加工", "C": "数据的传输、提供", "D": "数据的公开"}, "answer": "ABCD"}, {"id": 191, "type": "multi", "question": "根据所提供的信息，以下哪些是开展数据处理活动应当履行的义务？", "options": {"A": "依照法律、法规的规定开展数据处理活动", "B": "建立健全全流程数据安全管理制度", "C": "不必组织开展数据安全教育培训", "D": "采取相应的技术措施和其他必要措施，保障数据安全"}, "answer": "ABD"}, {"id": 192, "type": "multi", "question": "根据《中华人民共和国数据安全法》，开展数据处理活动的主体应当遵守以下哪些规定？", "options": {"A": "尊重社会公德和伦理", "B": "遵守商业道德和职业道德", "C": "履行数据安全保护义务", "D": "承担社会责任"}, "answer": "ABCD"}, {"id": 193, "type": "multi", "question": "根据《中华人民共和国数据安全法》，以下哪些是国家对影响或可能影响国家安全的数据处理活动实施的措施？", "options": {"A": "数据安全审查制度", "B": "数据分类分级保护制度", "C": "数据安全风险评估机制", "D": "数据出口管制"}, "answer": "ABCD"}, {"id": 194, "type": "multi", "question": "根据《中华人民共和国数据安全法》，以下哪些是个人和组织在进行数据处理活动时的义务？", "options": {"A": "遵守法律、法规和社会公德", "B": "尊重他人的合法权益", "C": "不考虑数据安全", "D": "忽略数据泄露可能性"}, "answer": "AB"}, {"id": 195, "type": "multi", "question": "下列哪些活动适用《中华人民共和国数据安全法》？", "options": {"A": "在中华人民共和国境内开展数据处理活动", "B": "在中华人民共和国境外开展数据处理活动，但不影响国内安全", "C": "在中华人民共和国境外开展数据处理活动，损害国内安全", "D": "个人私下进行的数据处理活动"}, "answer": "AC"}, {"id": 196, "type": "multi", "question": "根据《数据安全法》，哪些主体应承担数据安全责任？", "options": {"A": "数据处理者", "B": "数据所有者", "C": "数据监管者", "D": "数据使用者"}, "answer": "ABCD"}, {"id": 197, "type": "multi", "question": "《工业和信息化领域数据安全管理办法（试行）》适用于哪些数据处理活动？", "options": {"A": "工业和信息化领域的数据收集", "B": "工业和信息化领域的数据存储", "C": "工业和信息化领域的数据传输", "D": "个人日常生活数据处理"}, "answer": "ABC"}, {"id": 198, "type": "multi", "question": "数据处理者处理重要数据，应当遵循哪些规定？", "options": {"A": "开展数据出境安全评估", "B": "自行决定数据出境方式", "C": "在境内存储", "D": "无需任何限制，自由处理"}, "answer": "AC"}, {"id": 199, "type": "multi", "question": "在通信过程中，只采用数字签名可以解决（ ）等问题。", "options": {"A": "数据完整性", "B": "数据的抗抵赖性", "C": "数据的篡改", "D": "数据的保密性"}, "answer": "ABC"}, {"id": 200, "type": "multi", "question": "数据处理包括哪些环节？", "options": {"A": "数据的收集", "B": "数据的传输", "C": "数据的管理", "D": "数据的存储"}, "answer": "ABD"}, {"id": 201, "type": "multi", "question": "下列选项中，属于数据安全制度的是（）。", "options": {"A": "数据分类分级保护制度", "B": "数据安全风险评估、报告、信息共享、监测预警机制", "C": "数据安全应急处置机制", "D": "数据安全审查制度"}, "answer": "ABCD"}, {"id": 202, "type": "multi", "question": "在进行数据分类时，按照数据主体划分可分为（）。", "options": {"A": "公共数据", "B": "衍生数据", "C": "组织数据", "D": "个人信息"}, "answer": "ACD"}, {"id": 203, "type": "multi", "question": "GB/T 43697-2024《数据安全技术 数据分类分级规则》规定了数据分类分级的（）。", "options": {"A": "原则", "B": "框架", "C": "方法", "D": "流程"}, "answer": "ABCD"}, {"id": 204, "type": "multi", "question": "根据数据在经济社会发展中的重要程度，以及一旦遭到泄露、篡改、损毁或者非法获取、非法使用、非法共享，对国家安全、经济运行、社会秩序、公共利益、组织权益、个人权益造成的危害程度，可将数据分为（）。", "options": {"A": "核心数据", "B": "重要数据", "C": "敏感数据", "D": "一般数据"}, "answer": "ABD"}, {"id": 205, "type": "multi", "question": "GB/T 43697-2024《数据安全技术 数据分类分级规则》遵循国家数据分类分级保护要求，按照数据所属行业领域进行分类分级管理，对数据进行分类分级依据的原则有（）。", "options": {"A": "科学实用原则", "B": "边界清晰原则", "C": "就高从严原则", "D": "动态更新原则"}, "answer": "ABCD"}, {"id": 206, "type": "multi", "question": "《工业和信息化领域数据安全事件应急预案（试行）（征求意见稿）》关于数据安全事件应急相应，以下对应错误的是（）。", "options": {"A": "I级响应--工业和信息化领域数据安全工作机制办公室在发现事件后按照“电话20分钟、书面40分钟”的要求将事件情况向部网信领导小组报告", "B": "II级响应--工业和信息化领域数据安全工作机制办公室在发现事件后按照“电话20分钟、书面40分钟”的要求将事件情况向部网信领导小组报告", "C": "III级响应--工业和信息化领域数据安全工作机制办公室在发现事件后按照“电话10分钟、书面30分钟”的要求将事件情况向部网信领导小组报告", "D": "IV级响应--工业和信息化领域数据安全工作机制办公室在发现事件后按照“电话10分钟、书面30分钟”的要求将事件情况向部网信领导小组报告"}, "answer": "CD"}, {"id": 207, "type": "multi", "question": "数据的影响程度是指数据一旦遭到泄露、篡改、损毁或者非法获取、非法使用、非法共享，可能造成的影响程度。影响程度从高到低可分为特别严重危害、严重危害、一般危害。对不同影响对象进行影响程度判断时，采取的基准不同。以下影响程度判断正确的有（）。", "options": {"A": "当影响对象是国家安全时，如果关系其他国家安全重点领域，应将影响程度确定为严重危害。", "B": "当影响对象是经济运行时，如果关系国民经济命脉，应将影响程度确定为特别严重危害。", "C": "当影响对象是公共利益时，如果直接危害公共健康和安全，应将影响程度确定为严重危害。", "D": "当影响对象是社会秩序时，如果直接危害社会稳定，应将影响程度确定为严重危害。"}, "answer": "BCD"}, {"id": 208, "type": "multi", "question": "可判定为重大数据安全事件的是（）。", "options": {"A": "数据遭到篡改、破坏、泄露或者非法获取、非法利用，造成特别重大经济损失，损失10亿元（含）以上的", "B": "发生较严重个人信息安全事件，涉及100万人（含）以上1000万人以下个人信息或者10万人（含）以上100万人以下敏感个人信息的", "C": "重要数据遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、社会秩序、经济建设和公众利益构成严重威胁的", "D": "数据遭到篡改、破坏、泄露或者非法获取、非法利用，造成重大经济损失，损失1亿元（含）以上10亿元以下的"}, "answer": "BCD"}, {"id": 209, "type": "multi", "question": "遵循国家数据分类分级保护要求，按照数据所属行业领域进行分类分级管理，依据以下哪些原则对数据进行分类分级？（）", "options": {"A": "就高从严原则", "B": "点面结合原则", "C": "科学实用原则", "D": "边界清晰原则"}, "answer": "ABCD"}, {"id": 210, "type": "multi", "question": "《工业和信息化部等十六部门关于促进数据安全产业发展的指导意见》指出数据安全产业发展的保障措施是（）。", "options": {"A": "建立健全制度", "B": "加强组织领导", "C": "加大政策支持", "D": "优化发展环境"}, "answer": "ABCD"}, {"id": 211, "type": "multi", "question": "关于数据安全涉及的技术，以下说法正确的是（）。", "options": {"A": "隐私计算(Privy computing)是指在保护数据本身不对外泄露的前提下实现数据分析计算的技术集合，达到对数据“可用、不可见”的目的。", "B": "同态加密是一种需要访问数据本身才可以加工数据的方法。", "C": "联邦学习本质上是一种分布式机器学习技术，或机器学习框架。", "D": "多方安全计算能够同时确保输入的隐私性和计算的正确性。"}, "answer": "ACD"}, {"id": 212, "type": "multi", "question": "从技术角度出发，隐私计算是涵盖众多学科的交叉融合技术，主流的隐私计算技术主要分为哪几个方向？（）", "options": {"A": "以多方安全计算为代表的基于密码学的隐私计算技术", "B": "以联邦学习为代表的人工智能与隐私保护技术融合衍生的技术", "C": "以可信执行环境为代表的基于可信硬件的隐私计算技术", "D": "以零信任验证为代表的多对象验证技术"}, "answer": "ABC"}, {"id": 213, "type": "judge", "question": "《中华人民共和国数据安全法》适用范围是在中华人民共和国境内开展数据处理活动及其安全监管。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 214, "type": "judge", "question": "在中华人民共和国境外开展数据处理活动，损害中华人民共和国国家安全、公共利益或者公民、组织合法权益的，不追究法律责任。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 215, "type": "judge", "question": "根据《中华人民共和国数据安全法》，国家积极开展数据安全治理、数据开发利用等领域的国际交流与合作，以及参与数据安全相关国际规则和标准的制定，以促进数据跨境安全、自由流动。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 216, "type": "judge", "question": "关键信息基础设施的运营者在中华人民共和国境内运营中收集和产生的重要数据的出境安全管理，适用《中华人民共和国网络安全法》的规定。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 217, "type": "judge", "question": "任何组织、个人收集数据时应当采取合法、正当的方式，不得窃取或者以其他非法方式获取数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 218, "type": "judge", "question": "如果法律、行政法规对收集、使用数据的目的、范围有规定，则应当在规定的目的和范围内收集、使用数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 219, "type": "judge", "question": "从事数据交易中介服务的机构应当要求数据提供方说明数据来源，审核交易双方的身份，并留存审核、交易记录。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 220, "type": "judge", "question": "如果法律、行政法规规定提供数据处理相关服务应当取得行政许可，则服务提供者应当依法取得许可。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 221, "type": "judge", "question": "数据安全制度的主要目的是为了加强对数据的保护，不涉及统筹协调数据安全工作。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 222, "type": "judge", "question": "对于与维护国家安全和利益、履行国际义务相关的属于管制物项的数据，国家依法实施出口管制，以防止这些数据流失造成国家安全问题。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 223, "type": "judge", "question": "个人和组织在进行数据处理活动时，应当履行数据安全保护义务，但可以忽略对他人合法权益的保护，只需确保数据不受损害。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 224, "type": "judge", "question": "根据《中华人民共和国数据安全法》，国家对维护国家安全、利益以及履行国际义务相关的数据可以实施出口管制。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 225, "type": "judge", "question": "《中华人民共和国数据安全法》规定，任何组织、个人收集数据时不需要采取合法、正当的方式，可以通过任何手段获取数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 226, "type": "judge", "question": "根据《中华人民共和国数据安全法》，国家不会针对其他国家或地区在数据和数据开发利用技术等方面对中华人民共和国采取歧视性的禁止、限制或其他类似措施进行对等反击。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 227, "type": "judge", "question": "《中华人民共和国数据安全法》规定，任何国家或地区在与数据和数据开发利用技术等有关的投资、贸易等方面对中华人民共和国采取歧视性的禁止、限制或其他类似措施的，中华人民共和国可以根据实际情况对该国家或地区对等采取措施。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 228, "type": "judge", "question": "根据《中华人民共和国数据安全法》，国家对与维护国家安全和利益、履行国际义务相关的属于管制物项的数据不实施出口管制。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 229, "type": "judge", "question": "GB/T 43697-2024《数据安全技术 数据分类分级规则》中，个人信息是指以电子或者其他方式记录的与已识别或者可识别的自然人有关的各种信息。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 230, "type": "judge", "question": "根据GB/T 43697-2024，《数据安全技术 数据分类分级规则》，数据的分类分级标准是固定不变的，不受具体环境和行业的影响。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 231, "type": "judge", "question": "根据GB/T 43697-2024《数据安全技术 数据分类分级规则》，数据的分类分级应当在数据使用之前确定，不可随意更改。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 232, "type": "judge", "question": "《数据安全法》的出台，为我国数据安全保护提供了坚实的法律保障。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 233, "type": "judge", "question": "国家建立数据分类分级保护制度，根据数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 234, "type": "judge", "question": "国家建立数据安全风险评估、报告、信息共享、监测预警机制，加强数据安全风险信息的获取、分析、研判、预警、应对工作。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 235, "type": "judge", "question": "工业和信息化领域数据处理者在中华人民共和国境内收集和产生的重要数据和核心数据，应当在境内存储。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 236, "type": "judge", "question": "工业和信息化领域数据处理者应当对数据处理活动定期开展风险评估，及时处置风险隐患，并按照所属行业领域主管部门要求及时报送风险评估报告。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 237, "type": "judge", "question": "工业和信息化领域数据处理者处理个人信息数据，应当遵循合法、正当、必要原则，不得窃取或者以其他非法方式收集个人信息数据，不得非法出售或者非法向他人提供个人信息数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 238, "type": "judge", "question": "工业和信息化领域数据处理者应当建立数据销毁制度，明确销毁流程，对销毁活动进行记录和留存。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 239, "type": "judge", "question": "数据安全法规定，国家对数据实行分类管理，根据数据的重要性、敏感程度和风险程度，将数据分为一般数据、重要数据和关键数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 240, "type": "judge", "question": "数据安全，是指通过采取必要措施，确保数据处于有效保护和合法利用的状态，以及具备保障持续安全状态的能力。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 241, "type": "judge", "question": "违反国家核心数据管理制度，危害国家主权、安全和发展利益的，由有关主管部门处二百万元以上一千万元以下罚款，并根据情况责令暂停相关业务、停业整顿、吊销相关业务许可证或者吊销营业执照。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 242, "type": "judge", "question": "数字水印用于追踪数据所有权。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 243, "type": "judge", "question": "数字签名只能验证数据完整性。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 244, "type": "judge", "question": "数字水印的嵌入会明显修改原始数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 245, "type": "judge", "question": "数字签名中的公钥用于解密数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 246, "type": "judge", "question": "数字水印的鲁棒性与其可见性呈正相关。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 247, "type": "judge", "question": "数字签名中私钥泄露会威胁安全性。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 248, "type": "judge", "question": "数字水印仅适用于图像数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 249, "type": "judge", "question": "数字水印嵌入位置不影响数据质量。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 250, "type": "judge", "question": "数字签名可以防止数据篡改。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 251, "type": "judge", "question": "数据脱敏技术可以保护个人隐私。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 252, "type": "judge", "question": "数据脱敏过程中，标识符必须被删除。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 253, "type": "judge", "question": "数据脱敏不会对数据的可用性造成影响。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 254, "type": "judge", "question": "在数据权限控制中，用户可以自主决定数据的存取权限。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 255, "type": "judge", "question": "在数据权限控制中，权限的分配是静态的，不可更改。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 256, "type": "judge", "question": "数据权限控制可以确保只有经过授权的用户才能获得数据的访问权。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 257, "type": "judge", "question": "数据备份的主要目的是为了防止数据丢失和损坏。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 258, "type": "judge", "question": "数据恢复是指从备份中恢复丢失或损坏的数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 259, "type": "judge", "question": "增量备份只备份自上次完全备份以来发生变化的数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 260, "type": "judge", "question": "所有的数据备份都需要存储在同一个地方，以便管理和查找。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 261, "type": "judge", "question": "数据备份不会影响系统的正常运行和性能。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 262, "type": "judge", "question": "重要数据的处理者应当明确数据安全负责人和管理机构，落实数据安全保护责任。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 263, "type": "judge", "question": "国家机关应当遵循公正、公平、便民的原则，按照规定及时、准确地公开所有政务数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 264, "type": "judge", "question": "进行数据分类时，数据按照先行业领域分类、再业务属性分类的思路进行分类。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 265, "type": "judge", "question": "跨行业领域数据是指某个行业领域收集或产生的数据流转到另一个行业领域，以及两个或两个以上行业领域的数据融合加工产生的数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 266, "type": "judge", "question": "数据一旦遭到泄露、篡改、损毁或者非法获取、非法使用、非法共享，直接对国家安全造成一般危害的识别为一般数据。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 267, "type": "judge", "question": "数据分类可根据数据管理和使用需求，结合已有数据分类基础，灵活选择业务属性将数据细化分类。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 268, "type": "judge", "question": "根据数据在经济社会发展中的重要程度，以及一旦遭到泄露、篡改、损毁或者非法获取、非法使用、非法共享，对国家安全、经济运行、社会秩序、公共利益、组织权益、个人权益造成的危害程度，将数据从高到低分为高风险数据、中风险数据、低风险数据三个级别。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 269, "type": "judge", "question": "数据集级别可在数据项级别的基础上，按照就高从严的原则，将数据集包含数据项的最高级别作为数据集默认级别，但同时也要考虑分级要素（如数据规模）变化可能需要调高级别。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 270, "type": "judge", "question": "从数据描述对象角度，可将数据分为公共数据、业务数据、经营管理数据、系统运维数据四个类别。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 271, "type": "judge", "question": "GB/T 43697-2024《数据安全技术 数据分类分级规则》对公共数据的定义是：各级政务部门、具有公共管理和服务职能的组织及其技术支撑单位，在依法履行公共事务管理职责或提供公共服务过程中收集、产生的数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 272, "type": "judge", "question": "工业和信息化部组织制定工业和信息化领域数据分类分级、重要数据和核心数据识别认定、数据分级防护等标准规范，指导开展数据分类分级管理工作，制定行业重要数据和核心数据具体目录并实施动态管理。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 273, "type": "judge", "question": "工业和信息化领域数据处理者应当将本单位重要数据和核心数据目录向工业和信息化部备案。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 274, "type": "judge", "question": "通过间接途径获取重要数据和核心数据的，工业和信息化领域数据处理者应当与数据提供方通过签署相关协议、承诺书等方式，明确双方法律责任。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 275, "type": "judge", "question": "工业和信息化领域数据处理者应当在数据公开前分析研判可能对国家安全、公共利益产生的影响，存在重大影响的谨慎公开。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 276, "type": "judge", "question": "工业和信息化领域数据处理者销毁重要数据和核心数据后，不得以任何理由、任何方式对销毁数据进行恢复。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 277, "type": "judge", "question": "工业和信息化部统一管理、监督和指导工业和信息化领域数据安全风险评估工作，组织开展相关评估标准制修订及推广应用。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 278, "type": "judge", "question": "重要数据和核心数据处理者可以自行或者委托具有工业和信息化数据安全工作经验的第三方评估机构开展数据安全风险评估。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 279, "type": "judge", "question": "关于工业和信息化领域数据安全风险信息报送，数据安全风险信息报送内容包括风险基本情况、风险分析、风险处置建议、风险报送单位。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 280, "type": "judge", "question": "工业和信息化领域中的关键信息基础设施运营者在中华人民共和国境内运营中收集和产生的重要数据和核心数据未在境内存储，或者因业务需要，确需向境外提供的，未按照有关规定进行数据出境安全评估的情形，属于向境外非法提供数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 281, "type": "judge", "question": "2023年11月，工信部网安局起草了《工业和信息化领域数据安全行政处罚裁量指引（试行）（征求意见稿）》，该意见稿指出，工业和信息化领域数据安全行政处罚裁量工作应当遵循依法行政、责罚相当、处罚与教育相结合的原则。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 282, "type": "judge", "question": "工业和信息化领域数据处理者应当具备数据安全事件应对能力，数据处理者应当建立专门的数据安全应急保障队伍，提升本单位数据安全应急处置能力。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 283, "type": "judge", "question": "工业和信息化领域数据处理者、数据安全应急支撑机构认为可能发生一般及以上数据安全事件的，应当立即向地方行业监管部门报告。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 284, "type": "judge", "question": "数据安全事件，是指数据遭篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成危害的事件。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 285, "type": "judge", "question": "数据处理，包括数据的收集、存储、使用、加工、传输、提供、公开等。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 286, "type": "judge", "question": "未经主管机关批准向外国司法或者执法机构提供数据的行为将受到警告，并不会罚款。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 287, "type": "judge", "question": "数据安全产业是为保障数据持续处于有效保护、合法利用、有序流动状态提供技术、产品和服务的新兴业态。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 288, "type": "judge", "question": "电信数据是指在电信业务经营活动中产生和收集的数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 289, "type": "judge", "question": "工业和信息化领域重要数据和核心数据处理者，还应当明确数据处理关键岗位和岗位职责，并要求关键岗位人员签署数据安全责任书。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 290, "type": "judge", "question": "工业和信息化领域数据处理者提供数据，应当明确提供的范围、类别、条件、程序等，并与数据获取方签订数据安全协议。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 291, "type": "judge", "question": "非经工业和信息化部批准，工业和信息化领域数据处理者不得向外国工业、电信、无线电执法机构提供存储于中华人民共和国境内的工业和信息化领域数据。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 292, "type": "judge", "question": "根据《工业和信息化领域数据安全风险评估实施细则（试行）》，评估报告应当真实、完整、准确，并对评估结果负责。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 293, "type": "judge", "question": "重要数据和核心数据处理者在评估工作完成后的15个工作日内，向本地区行业监管部门报送或更新评估报告。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 294, "type": "judge", "question": "工业和信息化部可以委托数据安全风险评估支撑机构对重要数据和核心数据处理者的数据处理活动开展专项风险评估。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 295, "type": "judge", "question": "第三方评估机构应当履行保密义务，不得向其他组织或个人提供其收集掌握的技术保护措施、关键岗位人员和安全风险等相关信息。", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 296, "type": "judge", "question": "行业监管部门对第三方评估机构的评估活动进行监督管理，但不负责对违反法律法规、未按行业规定和标准开展评估活动、未履行保密义务的第三方评估机构进行约谈、通报或指导相关认证机构撤销认证。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 297, "type": "judge", "question": "涉及军事、国家秘密信息等数据处理活动，按照国家有关规定执行", "options": {"A": "正确", "B": "错误"}, "answer": "A"}, {"id": 298, "type": "judge", "question": "发现数据处理活动存在较大安全风险的行业监管部门应立即进行行政处罚。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}, {"id": 299, "type": "judge", "question": "如果违反数据安全管理办法的行为构成犯罪，行业监管部门将给予罚款处罚。", "options": {"A": "正确", "B": "错误"}, "answer": "B"}];
+
+// ============ STATE ============
+let state = {
+  mode: 'all',
+  view: 'practice',
+  currentIdx: 0,
+  queue: [],
+  answered: {},    // { questionId: { selected: "A", correct: true } }
+  wrongSet: {},    // { questionId: { selected: "A", answer: "B" } }
+  favorites: {},   // { questionId: true }
+  randomMode: false,
+  autoWrong: true,
+};
+
+// ============ PERSISTENCE ============
+function saveState() {
+  try {
+    localStorage.setItem('ds_quiz_state', JSON.stringify({
+      answered: state.answered,
+      wrongSet: state.wrongSet,
+      favorites: state.favorites,
+      randomMode: state.randomMode,
+      autoWrong: state.autoWrong,
+    }));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ds_quiz_state') || '{}');
+    if (saved.answered) state.answered = saved.answered;
+    if (saved.wrongSet) state.wrongSet = saved.wrongSet;
+    if (saved.favorites) state.favorites = saved.favorites;
+    if (saved.randomMode !== undefined) state.randomMode = saved.randomMode;
+    if (saved.autoWrong !== undefined) state.autoWrong = saved.autoWrong;
+  } catch(e) {}
+}
+
+// ============ QUEUE ============
+function buildQueue() {
+  let q;
+  if (state.mode === 'all') {
+    q = ALL_QUESTIONS.slice();
+  } else if (state.mode === 'wrong') {
+    q = ALL_QUESTIONS.filter(x => state.wrongSet[x.id]);
+  } else if (state.mode === 'fav') {
+    q = ALL_QUESTIONS.filter(x => state.favorites[x.id]);
+  } else {
+    q = ALL_QUESTIONS.filter(x => x.type === state.mode);
+  }
+  if (state.randomMode) {
+    q = q.sort(() => Math.random() - 0.5);
+  }
+  state.queue = q;
+  state.currentIdx = 0;
+}
+
+// ============ RENDER QUESTION ============
+function renderQuestion() {
+  const area = document.getElementById('question-area');
+  if (state.queue.length === 0) {
+    area.innerHTML = `<div class="empty-state">
+      <div class="icon">📝</div>
+      <div class="title">暂无题目</div>
+      <div class="desc">${state.mode === 'wrong' ? '错题库为空，继续加油！' : '请选择其他题型'}</div>
+    </div>`;
+    document.getElementById('btn-prev').disabled = true;
+    document.getElementById('btn-next').disabled = true;
+    updateProgress();
+    return;
+  }
+
+  const q = state.queue[state.currentIdx];
+  const typeLabel = q.type === 'single' ? '单选题' : (q.type === 'multi' ? '多选题' : '判断题');
+  const multiHint = q.type === 'multi' ? '<span style="color:#d97706;font-size:13px">（多选）</span>' : '';
+
+  let optionsHTML = '';
+  const letters = Object.keys(q.options).sort();
+  letters.forEach(letter => {
+    optionsHTML += `
+      <div class="option" data-letter="${letter}" onclick="selectOption('${letter}', ${q.type === 'multi'})">
+        <div class="option-letter">${letter}</div>
+        <div class="option-text">${escapeHtml(q.options[letter])}</div>
+      </div>`;
+  });
+
+  area.innerHTML = `
+    <div class="question-card">
+      <div class="q-meta">
+        <span class="q-badge ${q.type}">${typeLabel}</span>
+        ${multiHint}
+        <span class="q-num">第 ${state.currentIdx + 1} 题 · 题号 ${q.id}</span>
+        <button class="fav-btn ${state.favorites[q.id] ? 'active' : ''}" id="fav-btn" onclick="toggleFav(${q.id})" title="收藏/取消收藏">${state.favorites[q.id] ? '★' : '☆'}</button>
+      </div>
+      <div class="q-text">${escapeHtml(q.question)}</div>
+      <div class="options">${optionsHTML}</div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  // Restore previous answer if exists
+  const prev = state.answered[q.id];
+  if (prev) {
+    restoreAnswer(q, prev);
+  }
+
+  document.getElementById('btn-prev').disabled = state.currentIdx === 0;
+  document.getElementById('btn-next').disabled = false;
+  updateProgress();
+}
+
+function restoreAnswer(q, prev) {
+  const options = document.querySelectorAll('.option');
+  const selectedLetters = prev.selected.split('');
+  options.forEach(opt => {
+    const letter = opt.dataset.letter;
+    if (selectedLetters.includes(letter)) {
+      opt.classList.add('selected');
+    }
+  });
+  showFeedback(q, prev.selected, prev.correct);
+  options.forEach(o => o.classList.add('disabled'));
+}
+
+// ============ SELECT OPTION ============
+function selectOption(letter, isMulti) {
+  const q = state.queue[state.currentIdx];
+  const feedback = document.getElementById('feedback');
+
+  // If already answered, do nothing
+  if (state.answered[q.id]) return;
+
+  if (isMulti) {
+    // Toggle selection for multi
+    const opt = document.querySelector(`.option[data-letter="${letter}"]`);
+    opt.classList.toggle('selected');
+  } else {
+    // Single select: immediately submit
+    document.querySelectorAll('.option').forEach(o => {
+      o.classList.remove('selected');
+      o.classList.add('disabled');
+    });
+    document.querySelector(`.option[data-letter="${letter}"]`).classList.add('selected');
+
+    // Check answer
+    const correct = letter === q.answer;
+    state.answered[q.id] = { selected: letter, correct: correct };
+
+    if (!correct && state.autoWrong) {
+      state.wrongSet[q.id] = { selected: letter, answer: q.answer };
+    } else if (correct) {
+      // Remove from wrong set if previously wrong
+      delete state.wrongSet[q.id];
+    }
+
+    showFeedback(q, letter, correct);
+    saveState();
+    updateStats();
+  }
+}
+
+function submitMulti() {
+  const q = state.queue[state.currentIdx];
+  if (state.answered[q.id]) return;
+
+  const selected = Array.from(document.querySelectorAll('.option.selected'))
+    .map(o => o.dataset.letter).sort().join('');
+
+  if (!selected) {
+    alert('请至少选择一个选项');
+    return;
+  }
+
+  const correct = selected === q.answer;
+  state.answered[q.id] = { selected: selected, correct: correct };
+
+  if (!correct && state.autoWrong) {
+    state.wrongSet[q.id] = { selected: selected, answer: q.answer };
+  } else if (correct) {
+    delete state.wrongSet[q.id];
+  }
+
+  // Show correct/wrong styling
+  const correctLetters = q.answer.split('');
+  const selectedLetters = selected.split('');
+  document.querySelectorAll('.option').forEach(opt => {
+    opt.classList.add('disabled');
+    const l = opt.dataset.letter;
+    if (correctLetters.includes(l)) {
+      opt.classList.add('correct');
+    }
+    if (selectedLetters.includes(l) && !correctLetters.includes(l)) {
+      opt.classList.add('wrong');
+    }
+  });
+
+  showFeedback(q, selected, correct);
+  saveState();
+  updateStats();
+}
+
+// ============ FEEDBACK ============
+function showFeedback(q, selected, correct) {
+  const fb = document.getElementById('feedback');
+  const correctText = q.answer.split('').map(l => `${l}. ${q.options[l] || ''}`).join('；');
+  const selectedText = selected.split('').map(l => `${l}. ${q.options[l] || ''}`).join('；');
+
+  if (correct) {
+    fb.className = 'feedback show correct';
+    fb.innerHTML = `
+      <div class="fb-title">✅ 回答正确！</div>
+      <div class="fb-answer">正确答案：${q.answer}（${correctText}）</div>
+    `;
+  } else {
+    fb.className = 'feedback show wrong';
+    fb.innerHTML = `
+      <div class="fb-title">❌ 回答错误</div>
+      <div class="fb-answer">你的答案：${selected}（${selectedText}）</div>
+      <div class="fb-answer">正确答案：${q.answer}（${correctText}）</div>
+    `;
+  }
+}
+
+// ============ NAVIGATION ============
+function nextQuestion() {
+  const q = state.queue[state.currentIdx];
+  // For multi: if not answered but has selections, prompt submit
+  if (q && q.type === 'multi' && !state.answered[q.id]) {
+    const hasSelection = document.querySelector('.option.selected');
+    if (hasSelection) {
+      submitMulti();
+      return;
+    }
+  }
+  if (state.currentIdx < state.queue.length - 1) {
+    state.currentIdx++;
+    renderQuestion();
+  } else {
+    // End of queue
+    if (state.mode === 'wrong' && Object.keys(state.wrongSet).length === 0) {
+      alert('🎉 错题全部清空，太棒了！');
+    } else {
+      alert('🎉 本轮题目已完成！\n答对：' + countCorrect() + ' / ' + state.queue.length);
+      buildQueue();
+      renderQuestion();
+    }
+  }
+}
+
+function prevQuestion() {
+  if (state.currentIdx > 0) {
+    state.currentIdx--;
+    renderQuestion();
+  }
+}
+
+// ============ PROGRESS & STATS ============
+function updateProgress() {
+  const total = state.queue.length;
+  const cur = state.currentIdx + 1;
+  if (total > 0) {
+    const q = state.queue[state.currentIdx];
+    document.getElementById('progress-text').textContent = `第 ${cur} 题 · 题号 ${q.id}`;
+  } else {
+    document.getElementById('progress-text').textContent = '无题目';
+  }
+  document.getElementById('progress-total').textContent = `/ ${total}`;
+  document.getElementById('progress-fill').style.width = total > 0 ? ((cur / total) * 100) + '%' : '0%';
+  // Update answer sheet if open
+  updateSheetCells();
+}
+
+function countCorrect() {
+  let c = 0;
+  state.queue.forEach(q => {
+    if (state.answered[q.id] && state.answered[q.id].correct) c++;
+  });
+  return c;
+}
+
+function updateStats() {
+  const answeredIds = Object.keys(state.answered);
+  const correctCount = answeredIds.filter(id => state.answered[id].correct).length;
+  const wrongCount = answeredIds.filter(id => !state.answered[id].correct).length;
+  const rate = answeredIds.length > 0 ? Math.round((correctCount / answeredIds.length) * 100) + '%' : '--';
+
+  document.getElementById('stat-answered').textContent = answeredIds.length;
+  document.getElementById('stat-correct').textContent = correctCount;
+  document.getElementById('stat-wrong').textContent = wrongCount;
+  document.getElementById('stat-rate').textContent = rate;
+
+  document.getElementById('set-answered').textContent = answeredIds.length;
+  document.getElementById('set-correct').textContent = correctCount;
+  document.getElementById('set-wrong').textContent = wrongCount;
+  document.getElementById('set-rate').textContent = rate;
+
+  const wrongIds = Object.keys(state.wrongSet);
+  document.getElementById('wrong-count').textContent = wrongIds.length;
+
+  const favIds = Object.keys(state.favorites);
+  document.getElementById('fav-count').textContent = favIds.length;
+}
+
+// ============ VIEW SWITCH ============
+function switchView(view) {
+  state.view = view;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+
+  document.getElementById('view-practice').style.display = 'none';
+  document.getElementById('view-wrong').style.display = 'none';
+  document.getElementById('view-fav').style.display = 'none';
+  document.getElementById('view-settings').style.display = 'none';
+
+  if (view === 'practice') {
+    document.getElementById('view-practice').style.display = '';
+    document.querySelector('.nav-btn[onclick*="practice"]').classList.add('active');
+  } else if (view === 'wrong') {
+    document.getElementById('view-wrong').style.display = '';
+    document.querySelector('.nav-btn[onclick*="wrong"]').classList.add('active');
+    renderWrongList();
+  } else if (view === 'fav') {
+    document.getElementById('view-fav').style.display = '';
+    document.querySelector('.nav-btn[onclick*="fav"]').classList.add('active');
+    renderFavList();
+  } else if (view === 'settings') {
+    document.getElementById('view-settings').style.display = '';
+    document.querySelector('.nav-btn[onclick*="settings"]').classList.add('active');
+    updateSettingsUI();
+  }
+}
+
+// ============ ANSWER SHEET (粉笔风格答题卡) ============
+function openSheet() {
+  if (state.queue.length === 0) return;
+  renderSheet();
+  document.getElementById('sheet-overlay').classList.add('show');
+  document.getElementById('sheet-panel').classList.add('show');
+}
+
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('show');
+  document.getElementById('sheet-panel').classList.remove('show');
+}
+
+function renderSheet() {
+  const grid = document.getElementById('sheet-grid');
+  let html = '';
+  state.queue.forEach((q, idx) => {
+    const ans = state.answered[q.id];
+    let cellClass = 'sheet-cell';
+    if (state.favorites[q.id]) cellClass += ' fav';
+    if (idx === state.currentIdx) cellClass += ' current';
+    else if (ans && ans.correct) cellClass += ' correct';
+    else if (ans && !ans.correct) cellClass += ' wrong';
+    html += `<div class="${cellClass}" onclick="jumpToIndex(${idx})">${idx + 1}</div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function updateSheetCells() {
+  // Only update if sheet is visible
+  const panel = document.getElementById('sheet-panel');
+  if (panel && panel.classList.contains('show')) {
+    renderSheet();
+  }
+}
+
+function jumpToIndex(idx) {
+  if (idx < 0 || idx >= state.queue.length) return;
+  state.currentIdx = idx;
+  renderQuestion();
+  renderSheet();
+}
+
+// ============ MODE ============
+function setMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  buildQueue();
+  closeSheet();
+  renderQuestion();
+}
+
+// ============ WRONG LIST ============
+function renderWrongList() {
+  const area = document.getElementById('wrong-list-area');
+  const wrongIds = Object.keys(state.wrongSet).map(Number).sort((a,b) => a - b);
+
+  if (wrongIds.length === 0) {
+    area.innerHTML = `<div class="empty-state">
+      <div class="icon">🎉</div>
+      <div class="title">错题库为空</div>
+      <div class="desc">还没有错题，继续保持！</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  wrongIds.forEach(id => {
+    const q = ALL_QUESTIONS.find(x => x.id === id);
+    if (!q) return;
+    const w = state.wrongSet[id];
+    const typeLabel = q.type === 'single' ? '单选题' : (q.type === 'multi' ? '多选题' : '判断题');
+    const yourAnsText = w.selected.split('').map(l => `${l}. ${q.options[l] || ''}`).join('；');
+    const correctAnsText = w.answer.split('').map(l => `${l}. ${q.options[l] || ''}`).join('；');
+
+    html += `
+      <div class="wrong-item">
+        <div class="wi-meta">
+          <span class="q-badge ${q.type}">${typeLabel}</span>
+          <span class="q-num">题号 ${q.id}</span>
+        </div>
+        <div class="wi-question">${escapeHtml(q.question)}</div>
+        <div class="wi-answers">
+          你的答案：<span class="your-ans">${w.selected}</span>（${escapeHtml(yourAnsText)}）<br>
+          正确答案：<span class="correct-ans">${w.answer}</span>（${escapeHtml(correctAnsText)}）
+        </div>
+        <div class="wi-actions">
+          <button onclick="removeWrong(${id})">移出错题库</button>
+        </div>
+      </div>
+    `;
+  });
+  area.innerHTML = html;
+}
+
+function removeWrong(id) {
+  delete state.wrongSet[id];
+  saveState();
+  updateStats();
+  renderWrongList();
+}
+
+function clearAllWrong() {
+  if (Object.keys(state.wrongSet).length === 0) {
+    alert('错题库已经是空的');
+    return;
+  }
+  if (confirm('确定要清空全部错题吗？此操作不可恢复。')) {
+    state.wrongSet = {};
+    saveState();
+    updateStats();
+    renderWrongList();
+    if (state.mode === 'wrong') { buildQueue(); renderQuestion(); }
+  }
+}
+
+// ============ SETTINGS ============
+function updateSettingsUI() {
+  const btnRandom = document.getElementById('toggle-random');
+  btnRandom.textContent = state.randomMode ? '开启' : '关闭';
+  btnRandom.style.color = state.randomMode ? 'var(--primary)' : '';
+
+  const btnAuto = document.getElementById('toggle-auto-wrong');
+  btnAuto.textContent = state.autoWrong ? '开启' : '关闭';
+  btnAuto.style.color = state.autoWrong ? 'var(--primary)' : '';
+}
+
+function toggleRandom() {
+  state.randomMode = !state.randomMode;
+  saveState();
+  updateSettingsUI();
+}
+
+function toggleAutoWrong() {
+  state.autoWrong = !state.autoWrong;
+  saveState();
+  updateSettingsUI();
+}
+
+function clearProgress() {
+  if (confirm('确定要清空所有答题记录吗？')) {
+    state.answered = {};
+    saveState();
+    updateStats();
+    renderQuestion();
+    alert('已清空答题记录');
+  }
+}
+
+// ============ FAVORITE ============
+function toggleFav(id) {
+  if (state.favorites[id]) {
+    delete state.favorites[id];
+  } else {
+    state.favorites[id] = true;
+  }
+  saveState();
+  updateStats();
+  // Update the star button in-place
+  const btn = document.getElementById('fav-btn');
+  if (btn) {
+    const isFav = !!state.favorites[id];
+    btn.classList.toggle('active', isFav);
+    btn.textContent = isFav ? '★' : '☆';
+  }
+  updateSheetCells();
+}
+
+function renderFavList() {
+  const area = document.getElementById('fav-list-area');
+  const favIds = Object.keys(state.favorites).map(Number).sort((a,b) => a - b);
+
+  if (favIds.length === 0) {
+    area.innerHTML = `<div class="empty-state">
+      <div class="icon">⭐</div>
+      <div class="title">收藏夹为空</div>
+      <div class="desc">在刷题时点击星标即可收藏题目</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  favIds.forEach(id => {
+    const q = ALL_QUESTIONS.find(x => x.id === id);
+    if (!q) return;
+    const typeLabel = q.type === 'single' ? '单选题' : (q.type === 'multi' ? '多选题' : '判断题');
+    const correctAnsText = q.answer.split('').map(l => `${l}. ${q.options[l] || ''}`).join('；');
+
+    html += `
+      <div class="fav-item">
+        <div class="fi-meta">
+          <span class="q-badge ${q.type}">${typeLabel}</span>
+          <span class="q-num">题号 ${q.id}</span>
+        </div>
+        <div class="fi-question">${escapeHtml(q.question)}</div>
+        <div class="fi-answer">
+          正确答案：<span class="correct-ans">${q.answer}</span>（${escapeHtml(correctAnsText)}）
+        </div>
+        <div class="fi-actions">
+          <button onclick="removeFav(${id})">取消收藏</button>
+          <button onclick="goToQuestion(${id})">去练习</button>
+        </div>
+      </div>
+    `;
+  });
+  area.innerHTML = html;
+}
+
+function removeFav(id) {
+  delete state.favorites[id];
+  saveState();
+  updateStats();
+  renderFavList();
+  if (state.mode === 'fav') { buildQueue(); renderQuestion(); }
+}
+
+function clearAllFav() {
+  if (Object.keys(state.favorites).length === 0) {
+    alert('收藏夹已经是空的');
+    return;
+  }
+  if (confirm('确定要清空全部收藏吗？此操作不可恢复。')) {
+    state.favorites = {};
+    saveState();
+    updateStats();
+    renderFavList();
+    if (state.mode === 'fav') { buildQueue(); renderQuestion(); }
+  }
+}
+
+function goToQuestion(id) {
+  // Switch to practice view, all mode, find the question and jump to it
+  state.mode = 'all';
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === 'all');
+  });
+  buildQueue();
+  const idx = state.queue.findIndex(q => q.id === id);
+  if (idx >= 0) {
+    state.currentIdx = idx;
+  }
+  switchView('practice');
+  renderQuestion();
+}
+
+// ============ DATA EXPORT / IMPORT ============
+function exportData() {
+  const data = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    answered: state.answered,
+    wrongSet: state.wrongSet,
+    favorites: state.favorites,
+    randomMode: state.randomMode,
+    autoWrong: state.autoWrong,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const ts = now.getFullYear() + '-' +
+    String(now.getMonth()+1).padStart(2,'0') + '-' +
+    String(now.getDate()).padStart(2,'0') + '_' +
+    String(now.getHours()).padStart(2,'0') +
+    String(now.getMinutes()).padStart(2,'0');
+  a.href = url;
+  a.download = `数据安全刷题记录_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.answered && !data.wrongSet && !data.favorites) {
+        alert('文件格式不正确：未找到刷题记录数据');
+        event.target.value = '';
+        return;
+      }
+      const summary = [
+        `答题记录：${Object.keys(data.answered || {}).length} 题`,
+        `错题库：${Object.keys(data.wrongSet || {}).length} 题`,
+        `收藏：${Object.keys(data.favorites || {}).length} 题`,
+        `导出时间：${data.exportDate ? new Date(data.exportDate).toLocaleString('zh-CN') : '未知'}`,
+      ].join('\n');
+
+      if (!confirm('即将导入以下数据，将覆盖当前记录：\n\n' + summary + '\n\n确定导入吗？')) {
+        event.target.value = '';
+        return;
+      }
+
+      // Merge or overwrite (here we overwrite to keep it clean)
+      if (data.answered) state.answered = data.answered;
+      if (data.wrongSet) state.wrongSet = data.wrongSet;
+      if (data.favorites) state.favorites = data.favorites;
+      if (data.randomMode !== undefined) state.randomMode = data.randomMode;
+      if (data.autoWrong !== undefined) state.autoWrong = data.autoWrong;
+
+      saveState();
+      updateStats();
+      updateSettingsUI();
+      buildQueue();
+      renderQuestion();
+      alert('✅ 导入成功！\n\n' + summary);
+      event.target.value = '';
+    } catch(err) {
+      alert('导入失败：文件解析错误\n' + err.message);
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ============ UTIL ============
+function escapeHtml(text) {
+  if (!text) return '';
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ============ INIT ============
+loadState();
+buildQueue();
+renderQuestion();
+updateStats();
+updateSettingsUI();
+document.getElementById('set-total').textContent = ALL_QUESTIONS.length;
+</script>
+</body>
+</html>
